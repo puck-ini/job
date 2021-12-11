@@ -45,5 +45,5 @@ public class TaskTrigger extends BaseEntity {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private Task task;
+    private TaskInfo taskInfo;
 }

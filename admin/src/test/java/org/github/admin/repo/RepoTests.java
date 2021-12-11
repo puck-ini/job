@@ -2,7 +2,7 @@ package org.github.admin.repo;
 
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.entity.Point;
-import org.github.admin.entity.Task;
+import org.github.admin.entity.TaskInfo;
 import org.github.admin.entity.TaskGroup;
 import org.github.admin.entity.TaskTrigger;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +23,7 @@ import java.util.List;
 public class RepoTests {
 
     @Autowired
-    private TaskRepo taskRepo;
+    private TaskInfoRepo taskInfoRepo;
 
     @Autowired
     private TaskGroupRepo taskGroupRepo;
@@ -36,17 +36,17 @@ public class RepoTests {
     @Test
     void init() {
         TaskGroup taskGroup = new TaskGroup();
-        List<Task> taskList = new ArrayList<>();
+        List<TaskInfo> taskInfoList = new ArrayList<>();
         List<Point> pointList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             String s = String.valueOf(i);
-            Task task = new Task();
-            task.setClassName(s);
-            task.setTaskName(s);
-            task.setMethodName(s);
-            task.setParameterTypes(s);
-            task.setTaskGroup(taskGroup);
-            taskList.add(task);
+            TaskInfo taskInfo = new TaskInfo();
+            taskInfo.setClassName(s);
+            taskInfo.setTaskName(s);
+            taskInfo.setMethodName(s);
+            taskInfo.setParameterTypes(s);
+            taskInfo.setTaskGroup(taskGroup);
+            taskInfoList.add(taskInfo);
             Point point = new Point();
             point.setIp(s);
             point.setPort(i);
@@ -57,13 +57,13 @@ public class RepoTests {
                 String s1 = String.valueOf(j);
                 TaskTrigger taskTrigger = new TaskTrigger();
                 taskTrigger.setCronExpression(s1);
-                taskTrigger.setTask(task);
+                taskTrigger.setTaskInfo(taskInfo);
                 taskTriggerList.add(taskTrigger);
             }
-            task.setTriggerList(taskTriggerList);
+            taskInfo.setTriggerList(taskTriggerList);
         }
         taskGroup.setPointList(pointList);
-        taskGroup.setTaskList(taskList);
+        taskGroup.setTaskInfoList(taskInfoList);
         taskGroupRepo.save(taskGroup);
     }
 
@@ -72,9 +72,9 @@ public class RepoTests {
         List<TaskGroup> taskGroupList = taskGroupRepo.findAll();
         for (TaskGroup group : taskGroupList) {
             log.info(group.toString());
-            for (Task task : group.getTaskList()) {
-                log.info(task.toString());
-                for (TaskTrigger taskTrigger : task.getTriggerList()) {
+            for (TaskInfo taskInfo : group.getTaskInfoList()) {
+                log.info(taskInfo.toString());
+                for (TaskTrigger taskTrigger : taskInfo.getTriggerList()) {
                     log.info(taskTrigger.toString());
                 }
             }
@@ -89,11 +89,11 @@ public class RepoTests {
     void addTask() {
         List<TaskGroup> taskGroupList = taskGroupRepo.findAll();
         for (TaskGroup group : taskGroupList) {
-            Task task = new Task();
-            task.setTaskName("test");
-            task.setMethodName("test");
-            task.setTaskGroup(group);
-            taskRepo.save(task);
+            TaskInfo taskInfo = new TaskInfo();
+            taskInfo.setTaskName("test");
+            taskInfo.setMethodName("test");
+            taskInfo.setTaskGroup(group);
+            taskInfoRepo.save(taskInfo);
         }
         this.listGroup();
     }

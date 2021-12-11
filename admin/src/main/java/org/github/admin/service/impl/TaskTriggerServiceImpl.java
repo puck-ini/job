@@ -1,9 +1,9 @@
 package org.github.admin.service.impl;
 
-import org.github.admin.entity.Task;
+import org.github.admin.entity.TaskInfo;
 import org.github.admin.entity.TaskTrigger;
 import org.github.admin.entity.TriggerStatus;
-import org.github.admin.repo.TaskRepo;
+import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.req.CreateTriggerReq;
 import org.github.admin.service.TaskTriggerService;
@@ -14,10 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -32,7 +30,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
     private TaskTriggerRepo taskTriggerRepo;
 
     @Autowired
-    private TaskRepo taskRepo;
+    private TaskInfoRepo taskInfoRepo;
 
     @Override
     public Page<TaskTrigger> list() {
@@ -41,15 +39,15 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
 
     @Override
     public void create(CreateTriggerReq req) {
-        taskRepo.findById(req.getTaskId()).ifPresent(new Consumer<Task>() {
+        taskInfoRepo.findById(req.getTaskId()).ifPresent(new Consumer<TaskInfo>() {
             @Override
-            public void accept(Task task) {
+            public void accept(TaskInfo taskInfo) {
                 TaskTrigger taskTrigger = new TaskTrigger();
                 taskTrigger.setParameters(req.getParameters());
                 taskTrigger.setCronExpression(req.getCronExpression());
-                taskTrigger.setTask(task);
-                task.getTriggerList().add(taskTrigger);
-                taskRepo.save(task);
+                taskTrigger.setTaskInfo(taskInfo);
+                taskInfo.getTriggerList().add(taskTrigger);
+                taskInfoRepo.save(taskInfo);
             }
         });
     }

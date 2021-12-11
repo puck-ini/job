@@ -14,7 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
-public class Task extends BaseEntity {
+public class TaskInfo extends BaseEntity {
 
     /**
      * 任务名
@@ -41,6 +41,6 @@ public class Task extends BaseEntity {
     private TaskGroup taskGroup;
 
     @ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "task", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskInfo", fetch = FetchType.EAGER)
     private List<TaskTrigger> triggerList;
 }

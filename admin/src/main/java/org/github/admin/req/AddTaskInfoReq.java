@@ -8,7 +8,7 @@ import lombok.Data;
  */
 
 @Data
-public class AddTaskReq {
+public class AddTaskInfoReq {
 
     /**
      * 任务名

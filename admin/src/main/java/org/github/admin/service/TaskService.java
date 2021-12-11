@@ -1,7 +1,7 @@
 package org.github.admin.service;
 
-import org.github.admin.entity.Task;
-import org.github.admin.req.AddTaskReq;
+import org.github.admin.entity.TaskInfo;
+import org.github.admin.req.AddTaskInfoReq;
 import org.springframework.data.domain.Page;
 
 /**
@@ -10,8 +10,8 @@ import org.springframework.data.domain.Page;
  */
 public interface TaskService {
 
-    Page<Task> list();
+    Page<TaskInfo> list();
 
-    void addTask(AddTaskReq req);
+    void addTask(AddTaskInfoReq req);
 
 }

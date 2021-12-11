@@ -31,5 +31,5 @@ public class TaskGroup extends BaseEntity {
     @Fetch(FetchMode.SUBSELECT) // 一对多的类中还有一对多关系需要使用该注解
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskGroup", fetch = FetchType.EAGER)
-    private List<Task> taskList;
+    private List<TaskInfo> taskInfoList;
 }

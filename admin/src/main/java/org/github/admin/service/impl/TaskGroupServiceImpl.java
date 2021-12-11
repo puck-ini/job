@@ -1,7 +1,6 @@
 package org.github.admin.service.impl;
 
 import org.github.admin.entity.Point;
-import org.github.admin.entity.Task;
 import org.github.admin.entity.TaskGroup;
 import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.req.CreateGroupReq;
