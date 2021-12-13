@@ -6,6 +6,7 @@ import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.req.AddTaskInfoReq;
 import org.github.admin.service.TaskService;
+import org.github.common.TaskDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,10 +38,11 @@ public class TaskServiceImpl implements TaskService {
             @Override
             public void accept(TaskGroup taskGroup) {
                 TaskInfo taskInfo = new TaskInfo();
-                taskInfo.setTaskName(req.getTaskName());
-                taskInfo.setClassName(req.getClassName());
-                taskInfo.setMethodName(req.getMethodName());
-                taskInfo.setParameterTypes(req.getParameterTypes());
+                TaskDesc taskDesc = taskInfo.getTaskDesc();
+                taskDesc.setTaskName(req.getTaskName());
+                taskDesc.setClassName(req.getClassName());
+                taskDesc.setMethodName(req.getMethodName());
+                taskDesc.setParameterTypes(req.getParameterTypes());
                 taskInfo.setTaskGroup(taskGroup);
                 taskGroup.getTaskInfoList().add(taskInfo);
                 taskGroupRepo.save(taskGroup);

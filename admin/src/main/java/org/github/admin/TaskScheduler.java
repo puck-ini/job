@@ -1,16 +1,17 @@
 package org.github.admin;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
+import org.github.admin.entity.Point;
 import org.github.admin.entity.TaskTrigger;
 import org.github.admin.service.TaskTriggerService;
+import org.github.common.TaskDesc;
+import org.github.common.TaskReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Slf4j
-@Component
+//@Component
 public class TaskScheduler {
 
     private static final long TICK  = 1000L;
@@ -40,6 +41,8 @@ public class TaskScheduler {
     private TaskTriggerService taskTriggerService;
 
     private static volatile Map<Integer, List<TaskTrigger>> triggerMap = new ConcurrentHashMap<>();
+
+    private Map<Point, TaskInvocation> invocationMap = new ConcurrentHashMap<>();
 
     private final ThreadFactory threadFactory = new ThreadFactory() {
         @Override
@@ -135,7 +138,41 @@ public class TaskScheduler {
     }
 
     private void invoke(TaskTrigger taskTrigger) {
-        log.info(taskTrigger.toString());
+        log.info("trigger : " + taskTrigger.toString());
+        List<Point> pointList = taskTrigger.getTaskInfo().getTaskGroup().getPointList();
+        TaskInvocation invocation = invocationMap.computeIfAbsent(
+                pointList.get(new Random().nextInt(pointList.size())),
+                k -> new TaskInvocation(k, invocationMap)
+        );
+        TaskDesc taskDesc = taskTrigger.getTaskInfo().getTaskDesc();
+        TaskReq req = TaskReq.builder()
+                .requestId(UUID.randomUUID().toString())
+                .className(taskDesc.getClassName())
+                .methodName(taskDesc.getMethodName())
+                .parameterTypes(parseTypesJson(taskDesc.getParameterTypes()))
+                .parameters(parseParaJson(taskTrigger.getParameters()))
+                .build();
+        invocation.invoke(req);
+    }
+
+    private Class[] parseTypesJson(String json) {
+        if (Objects.isNull(json)) {
+            return new Class[]{};
+        }
+        List<Class> objects = JSON.parseArray(json, Class.class);
+        Class[] arr = new Class[objects.size()];
+        for (int i = 0; i < objects.size(); i++) {
+            arr[i] = objects.get(i);
+        }
+        return arr;
+    }
+
+    private Object[] parseParaJson(String json) {
+        if (Objects.isNull(json)) {
+            return new Object[]{};
+        }
+        List<Object> objects = JSON.parseArray(json, Object.class);
+        return objects.toArray();
     }
 
     public void stop() {

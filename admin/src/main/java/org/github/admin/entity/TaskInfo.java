@@ -3,6 +3,7 @@ package org.github.admin.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.github.common.TaskDesc;
 
 import javax.persistence.*;
 import java.util.List;
@@ -16,25 +17,7 @@ import java.util.List;
 @Data
 public class TaskInfo extends BaseEntity {
 
-    /**
-     * 任务名
-     */
-    private String taskName;
-
-    /**
-     * 任务所在的类名
-     */
-    private String className;
-
-    /**
-     * 方法名
-     */
-    private String methodName;
-
-    /**
-     * 任务参数类型，Class<?>[] json
-     */
-    private String parameterTypes;
+    private TaskDesc taskDesc = new TaskDesc();
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))

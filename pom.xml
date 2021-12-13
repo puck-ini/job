@@ -7,6 +7,7 @@
         <module>admin</module>
         <module>common</module>
         <module>task-starter</module>
+        <module>task-test</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -33,6 +34,18 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <artifactId>common</artifactId>
+                <groupId>org.github</groupId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.github</groupId>
+                <artifactId>task-starter</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.postgresql</groupId>

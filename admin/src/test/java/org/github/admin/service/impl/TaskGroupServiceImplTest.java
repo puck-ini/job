@@ -31,7 +31,7 @@ class TaskGroupServiceImplTest {
         CreateGroupReq req = new CreateGroupReq();
         Point point = new Point();
         point.setIp("127.0.0.1");
-        point.setPort(9003);
+        point.setPort(30003);
         req.setName("test1");
         req.getPointList().add(point);
         taskGroupService.createGroup(req);
@@ -42,10 +42,10 @@ class TaskGroupServiceImplTest {
     void addTask() {
         for (TaskGroup group : taskGroupService.list().getContent()) {
             AddTaskInfoReq req = new AddTaskInfoReq();
-            req.setClassName("testtask");
-            req.setMethodName("testtask");
-            req.setParameterTypes("testtask");
-            req.setTaskName("testtask");
+            req.setClassName("org.github.tasktest.LogTask");
+            req.setMethodName("log");
+            req.setParameterTypes(null);
+            req.setTaskName("log");
             req.setTaskGroupId(group.getId());
             taskService.addTask(req);
         }
@@ -55,7 +55,7 @@ class TaskGroupServiceImplTest {
     void addTrigger() {
         for (TaskInfo taskInfo : taskService.list().getContent()) {
             CreateTriggerReq req = new CreateTriggerReq();
-            req.setParameters("test");
+            req.setParameters(null);
             req.setCronExpression("0/1 * * * * ? ");
             req.setTaskId(taskInfo.getId());
             taskTriggerService.create(req);

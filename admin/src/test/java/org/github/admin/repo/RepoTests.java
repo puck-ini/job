@@ -5,6 +5,7 @@ import org.github.admin.entity.Point;
 import org.github.admin.entity.TaskInfo;
 import org.github.admin.entity.TaskGroup;
 import org.github.admin.entity.TaskTrigger;
+import org.github.common.TaskDesc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,11 @@ public class RepoTests {
         for (int i = 0; i < 10; i++) {
             String s = String.valueOf(i);
             TaskInfo taskInfo = new TaskInfo();
-            taskInfo.setClassName(s);
-            taskInfo.setTaskName(s);
-            taskInfo.setMethodName(s);
-            taskInfo.setParameterTypes(s);
+            TaskDesc taskDesc = taskInfo.getTaskDesc();
+            taskDesc.setClassName(s);
+            taskDesc.setTaskName(s);
+            taskDesc.setMethodName(s);
+            taskDesc.setParameterTypes(s);
             taskInfo.setTaskGroup(taskGroup);
             taskInfoList.add(taskInfo);
             Point point = new Point();
@@ -90,8 +92,9 @@ public class RepoTests {
         List<TaskGroup> taskGroupList = taskGroupRepo.findAll();
         for (TaskGroup group : taskGroupList) {
             TaskInfo taskInfo = new TaskInfo();
-            taskInfo.setTaskName("test");
-            taskInfo.setMethodName("test");
+            TaskDesc taskDesc = taskInfo.getTaskDesc();
+            taskDesc.setTaskName("test");
+            taskDesc.setMethodName("test");
             taskInfo.setTaskGroup(group);
             taskInfoRepo.save(taskInfo);
         }

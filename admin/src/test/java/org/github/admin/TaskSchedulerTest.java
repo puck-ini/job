@@ -37,7 +37,7 @@ class TaskSchedulerTest {
 
     @AfterEach
     void sleep() throws InterruptedException {
-        TimeUnit.SECONDS.sleep(30);
+        TimeUnit.SECONDS.sleep(20);
         List<TaskTrigger> taskTriggerList = taskTriggerService.list().getContent();
         taskTriggerService.stopTrigger(taskTriggerList.stream().map(TaskTrigger::getId).collect(Collectors.toList()));
         taskScheduler.stop();
