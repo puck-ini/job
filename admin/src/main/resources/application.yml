@@ -10,5 +10,7 @@ spring:
       ddl-auto: create
 server:
   port: 9003
+  servlet:
+    context-path: /task
 zk:
   address: 127.0.0.1:2181

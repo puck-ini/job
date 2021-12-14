@@ -1,4 +1,4 @@
-package org.github.admin;
+package org.github.admin.service;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -12,7 +12,6 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.entity.Point;
-import org.github.admin.service.TaskGroupService;
 import org.github.admin.util.SpringApplicationContextUtil;
 import org.github.common.*;
 
@@ -110,7 +109,7 @@ public class TaskInvocation {
                 TaskGroupService taskGroupService = SpringApplicationContextUtil.getBean(TaskGroupService.class);
                 taskGroupService.addGroup(info);
             } else {
-                log.info(msg.toString());
+//                log.info(msg.toString());
             }
         }
 

@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
  * @author zengchzh
  * @date 2021/12/10
  */
-public interface TaskService {
+public interface TaskInfoService {
 
     Page<TaskInfo> list();
 

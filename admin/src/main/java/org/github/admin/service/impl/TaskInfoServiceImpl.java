@@ -5,7 +5,7 @@ import org.github.admin.entity.TaskGroup;
 import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.req.AddTaskInfoReq;
-import org.github.admin.service.TaskService;
+import org.github.admin.service.TaskInfoService;
 import org.github.common.TaskDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  * @date 2021/12/10
  */
 @Service
-public class TaskServiceImpl implements TaskService {
+public class TaskInfoServiceImpl implements TaskInfoService {
 
     @Autowired
     private TaskInfoRepo taskInfoRepo;

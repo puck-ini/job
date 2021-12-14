@@ -48,26 +48,26 @@ public class TaskTrigger extends BaseEntity {
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TaskInfo taskInfo;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        TaskTrigger that = (TaskTrigger) o;
-        return Objects.equals(parameters, that.parameters) &&
-                Objects.equals(cronExpression, that.cronExpression) &&
-                Objects.equals(startTime, that.startTime) &&
-                Objects.equals(lastTime, that.lastTime) &&
-                Objects.equals(nextTime, that.nextTime) &&
-                status == that.status &&
-                Objects.equals(taskInfo, that.taskInfo);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(parameters, cronExpression, startTime, lastTime, nextTime, status, taskInfo);
-    }
+//    @Override
+//    public boolean equals(Object o) {
+//        if (this == o) {
+//            return true;
+//        }
+//        if (o == null || getClass() != o.getClass()) {
+//            return false;
+//        }
+//        TaskTrigger that = (TaskTrigger) o;
+//        return Objects.equals(parameters, that.parameters) &&
+//                Objects.equals(cronExpression, that.cronExpression) &&
+//                Objects.equals(startTime, that.startTime) &&
+//                Objects.equals(lastTime, that.lastTime) &&
+//                Objects.equals(nextTime, that.nextTime) &&
+//                status == that.status &&
+//                Objects.equals(taskInfo, that.taskInfo);
+//    }
+//
+//    @Override
+//    public int hashCode() {
+//        return Objects.hash(parameters, cronExpression, startTime, lastTime, nextTime, status, taskInfo);
+//    }
 }

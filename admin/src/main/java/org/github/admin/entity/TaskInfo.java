@@ -1,5 +1,6 @@
 package org.github.admin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -22,6 +23,7 @@ public class TaskInfo extends BaseEntity {
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TaskGroup taskGroup;
 
+    @JsonIgnore
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskInfo", fetch = FetchType.EAGER)
     private Set<TaskTrigger> triggerSet = new HashSet<>();

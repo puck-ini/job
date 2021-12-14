@@ -1,5 +1,6 @@
 package org.github.admin.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -20,11 +21,13 @@ public class TaskGroup extends BaseEntity {
     @Column(unique = true)
     private String name;
 
+    @JsonIgnore
     @Fetch(FetchMode.SUBSELECT)
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskGroup", fetch = FetchType.EAGER)
     private Set<Point> pointSet = new HashSet<>();
 
+    @JsonIgnore
     @Fetch(FetchMode.SUBSELECT) // 一对多的类中还有一对多关系需要使用该注解
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskGroup", fetch = FetchType.EAGER)

@@ -7,7 +7,7 @@ import org.github.admin.req.AddTaskInfoReq;
 import org.github.admin.req.CreateGroupReq;
 import org.github.admin.req.CreateTriggerReq;
 import org.github.admin.service.TaskGroupService;
-import org.github.admin.service.TaskService;
+import org.github.admin.service.TaskInfoService;
 import org.github.admin.service.TaskTriggerService;
 import org.github.common.TaskAppInfo;
 import org.github.common.TaskDesc;
@@ -23,7 +23,7 @@ class TaskGroupServiceImplTest {
     TaskGroupService taskGroupService;
 
     @Autowired
-    TaskService taskService;
+    TaskInfoService taskInfoService;
 
     @Autowired
     TaskTriggerService taskTriggerService;
@@ -60,13 +60,13 @@ class TaskGroupServiceImplTest {
             req.setParameterTypes(null);
             req.setTaskName("log");
             req.setTaskGroupId(group.getId());
-            taskService.addTask(req);
+            taskInfoService.addTask(req);
         }
     }
 
     @Test
     void addTrigger() {
-        for (TaskInfo taskInfo : taskService.list().getContent()) {
+        for (TaskInfo taskInfo : taskInfoService.list().getContent()) {
             CreateTriggerReq req = new CreateTriggerReq();
             req.setParameters(null);
             req.setCronExpression("0/1 * * * * ? ");
