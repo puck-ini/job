@@ -1,7 +1,7 @@
 package org.github.admin.service;
 
-import org.github.admin.entity.TaskInfo;
-import org.github.admin.req.AddTaskInfoReq;
+import org.github.admin.model.entity.TaskInfo;
+import org.github.admin.model.req.AddTaskInfoReq;
 import org.springframework.data.domain.Page;
 
 /**

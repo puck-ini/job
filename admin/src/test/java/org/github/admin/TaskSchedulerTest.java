@@ -1,8 +1,8 @@
 package org.github.admin;
 
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.entity.LocalTask;
-import org.github.admin.entity.TaskTrigger;
+import org.github.admin.model.task.LocalTask;
+import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.service.TaskScheduler;
 import org.github.admin.service.TaskTriggerService;
 import org.junit.jupiter.api.AfterEach;

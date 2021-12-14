@@ -1,11 +1,9 @@
-package org.github.admin.req;
+package org.github.admin.model.req;
 
 import lombok.Data;
-import org.github.admin.entity.Point;
+import org.github.admin.model.entity.Point;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**

@@ -1,11 +1,10 @@
 package org.github.admin.service.impl;
 
-import org.github.admin.entity.TaskInfo;
-import org.github.admin.entity.TaskTrigger;
-import org.github.admin.entity.TriggerStatus;
+import org.github.admin.model.entity.TaskInfo;
+import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.repo.TaskTriggerRepo;
-import org.github.admin.req.CreateTriggerReq;
+import org.github.admin.model.req.CreateTriggerReq;
 import org.github.admin.service.TaskTriggerService;
 import org.github.admin.util.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +56,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         taskTriggerRepo.findById(triggerId).ifPresent(new Consumer<TaskTrigger>() {
             @Override
             public void accept(TaskTrigger taskTrigger) {
-                taskTrigger.setStatus(TriggerStatus.RUNNING);
+                taskTrigger.setStatus(TaskTrigger.TriggerStatus.RUNNING);
                 taskTrigger.setStartTime(System.currentTimeMillis());
                 taskTrigger.setLastTime(taskTrigger.getNextTime());
                 taskTrigger.setNextTime(getNextTime(taskTrigger.getCronExpression(), new Date()) + 5000);
@@ -76,7 +75,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         taskTriggerRepo.findById(triggerId).ifPresent(new Consumer<TaskTrigger>() {
             @Override
             public void accept(TaskTrigger taskTrigger) {
-                taskTrigger.setStatus(TriggerStatus.STOP);
+                taskTrigger.setStatus(TaskTrigger.TriggerStatus.STOP);
                 taskTrigger.setNextTime(0L);
                 taskTriggerRepo.save(taskTrigger);
             }
@@ -91,7 +90,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
     @Override
     public List<TaskTrigger> getDeadlineTrigger(Long maxTime, Integer size) {
         Page<TaskTrigger> triggerPage = taskTriggerRepo.findAllByStatusAndNextTimeIsLessThanEqual(
-                TriggerStatus.RUNNING,
+                TaskTrigger.TriggerStatus.RUNNING,
                 System.currentTimeMillis() + maxTime,
                 PageRequest.of(0, size)
         );

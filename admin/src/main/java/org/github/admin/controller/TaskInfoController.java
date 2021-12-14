@@ -1,6 +1,6 @@
 package org.github.admin.controller;
 
-import org.github.admin.entity.TaskInfo;
+import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.service.TaskInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

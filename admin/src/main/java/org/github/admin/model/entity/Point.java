@@ -1,9 +1,6 @@
-package org.github.admin.entity;
+package org.github.admin.model.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.Objects;

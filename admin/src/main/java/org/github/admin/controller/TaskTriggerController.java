@@ -1,8 +1,8 @@
 package org.github.admin.controller;
 
-import org.github.admin.entity.BaseEntity;
-import org.github.admin.entity.TaskTrigger;
-import org.github.admin.req.CreateTriggerReq;
+import org.github.admin.model.entity.BaseEntity;
+import org.github.admin.model.entity.TaskTrigger;
+import org.github.admin.model.req.CreateTriggerReq;
 import org.github.admin.service.TaskTriggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

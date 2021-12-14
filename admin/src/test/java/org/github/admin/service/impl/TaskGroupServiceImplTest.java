@@ -1,11 +1,11 @@
 package org.github.admin.service.impl;
 
-import org.github.admin.entity.Point;
-import org.github.admin.entity.TaskInfo;
-import org.github.admin.entity.TaskGroup;
-import org.github.admin.req.AddTaskInfoReq;
-import org.github.admin.req.CreateGroupReq;
-import org.github.admin.req.CreateTriggerReq;
+import org.github.admin.model.entity.Point;
+import org.github.admin.model.entity.TaskInfo;
+import org.github.admin.model.entity.TaskGroup;
+import org.github.admin.model.req.AddTaskInfoReq;
+import org.github.admin.model.req.CreateGroupReq;
+import org.github.admin.model.req.CreateTriggerReq;
 import org.github.admin.service.TaskGroupService;
 import org.github.admin.service.TaskInfoService;
 import org.github.admin.service.TaskTriggerService;

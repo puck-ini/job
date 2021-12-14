@@ -1,6 +1,6 @@
 package org.github.admin.repo;
 
-import org.github.admin.entity.TaskInfo;
+import org.github.admin.model.entity.TaskInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**

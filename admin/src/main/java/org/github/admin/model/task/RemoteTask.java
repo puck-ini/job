@@ -1,6 +1,8 @@
-package org.github.admin.entity;
+package org.github.admin.model.task;
 
 import lombok.Data;
+import org.github.admin.model.entity.Point;
+import org.github.admin.model.entity.TaskTrigger;
 import org.github.common.TaskDesc;
 
 import java.util.Set;

@@ -2,10 +2,10 @@ package org.github.admin.service;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.entity.*;
-import org.github.admin.entity.TimerTask;
-import org.github.admin.service.TaskInvocation;
-import org.github.admin.service.TaskTriggerService;
+import org.github.admin.model.entity.*;
+import org.github.admin.model.task.LocalTask;
+import org.github.admin.model.task.RemoteTask;
+import org.github.admin.model.task.TimerTask;
 import org.github.common.ServiceObject;
 import org.github.common.TaskReq;
 import org.github.common.ZkRegister;
@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
  */
 
 @Slf4j
-//@Component
 public class TaskScheduler {
 
     private static final long TICK  = 1000L;

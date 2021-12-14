@@ -11,7 +11,7 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.entity.Point;
+import org.github.admin.model.entity.Point;
 import org.github.admin.util.SpringApplicationContextUtil;
 import org.github.common.*;
 

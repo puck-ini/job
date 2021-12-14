@@ -1,4 +1,4 @@
-package org.github.admin.entity;
+package org.github.admin.model.task;
 
 /**
  * @author zengchzh

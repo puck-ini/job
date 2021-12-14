@@ -1,10 +1,10 @@
 package org.github.admin.service.impl;
 
-import org.github.admin.entity.TaskInfo;
-import org.github.admin.entity.TaskGroup;
+import org.github.admin.model.entity.TaskInfo;
+import org.github.admin.model.entity.TaskGroup;
 import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.repo.TaskInfoRepo;
-import org.github.admin.req.AddTaskInfoReq;
+import org.github.admin.model.req.AddTaskInfoReq;
 import org.github.admin.service.TaskInfoService;
 import org.github.common.TaskDesc;
 import org.springframework.beans.factory.annotation.Autowired;

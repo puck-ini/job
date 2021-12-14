@@ -1,11 +1,11 @@
 package org.github.admin.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.entity.Point;
-import org.github.admin.entity.TaskGroup;
-import org.github.admin.entity.TaskInfo;
+import org.github.admin.model.entity.Point;
+import org.github.admin.model.entity.TaskGroup;
+import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.repo.TaskGroupRepo;
-import org.github.admin.req.CreateGroupReq;
+import org.github.admin.model.req.CreateGroupReq;
 import org.github.admin.service.TaskGroupService;
 import org.github.common.TaskAppInfo;
 import org.github.common.TaskDesc;
@@ -14,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 

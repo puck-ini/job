@@ -1,12 +1,9 @@
-package org.github.admin.entity;
+package org.github.admin.model.task;
 
-import lombok.Data;
 import org.github.admin.util.CronExpression;
 
 import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author zengchzh

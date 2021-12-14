@@ -1,7 +1,7 @@
 package org.github.admin.service;
 
-import org.github.admin.entity.TaskTrigger;
-import org.github.admin.req.CreateTriggerReq;
+import org.github.admin.model.entity.TaskTrigger;
+import org.github.admin.model.req.CreateTriggerReq;
 import org.springframework.data.domain.Page;
 
 import java.util.List;

@@ -1,10 +1,9 @@
-package org.github.admin.entity;
+package org.github.admin.model.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
-import java.util.Objects;
 
 /**
  * @author zengchzh
@@ -48,6 +47,13 @@ public class TaskTrigger extends BaseEntity {
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TaskInfo taskInfo;
 
+
+    public enum TriggerStatus {
+
+        RUNNING,
+        STOP
+        ;
+    }
 //    @Override
 //    public boolean equals(Object o) {
 //        if (this == o) {
