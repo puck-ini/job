@@ -44,7 +44,7 @@ public class TaskServiceImpl implements TaskService {
                 taskDesc.setMethodName(req.getMethodName());
                 taskDesc.setParameterTypes(req.getParameterTypes());
                 taskInfo.setTaskGroup(taskGroup);
-                taskGroup.getTaskInfoList().add(taskInfo);
+                taskGroup.getTaskInfoSet().add(taskInfo);
                 taskGroupRepo.save(taskGroup);
             }
         });

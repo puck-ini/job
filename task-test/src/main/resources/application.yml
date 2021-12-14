@@ -1,3 +1,5 @@
 spring:
   application:
     name: test1
+server:
+  port: 9901

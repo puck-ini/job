@@ -6,13 +6,12 @@ import lombok.ToString;
 import org.github.common.TaskDesc;
 
 import javax.persistence.*;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author zengchzh
  * @date 2021/12/10
  */
-@EqualsAndHashCode(callSuper = true)
 @Entity
 @Data
 public class TaskInfo extends BaseEntity {
@@ -25,5 +24,23 @@ public class TaskInfo extends BaseEntity {
 
     @ToString.Exclude
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskInfo", fetch = FetchType.EAGER)
-    private List<TaskTrigger> triggerList;
+    private Set<TaskTrigger> triggerSet = new HashSet<>();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TaskInfo taskInfo = (TaskInfo) o;
+        return taskDesc.equals(taskInfo.taskDesc) &&
+                taskGroup.equals(taskInfo.taskGroup);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(taskDesc, taskGroup);
+    }
 }

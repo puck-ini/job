@@ -30,6 +30,9 @@ public class MsgDecoder extends ByteToMessageDecoder {
                     break;
                 case BEAT:
                     return;
+                case PRE_RES:
+                    taskMsg.setData(serializer.deserialize(data, TaskAppInfo.class));
+                case PRE_REQ:
                 default:
                     break;
             }

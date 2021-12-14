@@ -46,7 +46,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
                 taskTrigger.setParameters(req.getParameters());
                 taskTrigger.setCronExpression(req.getCronExpression());
                 taskTrigger.setTaskInfo(taskInfo);
-                taskInfo.getTriggerList().add(taskTrigger);
+                taskInfo.getTriggerSet().add(taskTrigger);
                 taskInfoRepo.save(taskInfo);
             }
         });

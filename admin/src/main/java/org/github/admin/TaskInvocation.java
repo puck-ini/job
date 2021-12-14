@@ -12,6 +12,8 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.entity.Point;
+import org.github.admin.service.TaskGroupService;
+import org.github.admin.util.SpringApplicationContextUtil;
 import org.github.common.*;
 
 import java.util.Map;
@@ -88,11 +90,28 @@ public class TaskInvocation {
         channel.writeAndFlush(TaskMsg.builder().msgType(MsgType.REQ).data(req).build());
     }
 
+    public void preRead() {
+        if (Objects.isNull(channel)) {
+            try {
+                channel = cp.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        channel.writeAndFlush(TaskMsg.builder().msgType(MsgType.PRE_REQ).build());
+    }
+
     class InvocationHandler extends SimpleChannelInboundHandler<TaskMsg> {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, TaskMsg msg) throws Exception {
-            log.info(msg.toString());
+            if (MsgType.PRE_RES == msg.getMsgType()) {
+                TaskAppInfo info = (TaskAppInfo) msg.getData();
+                TaskGroupService taskGroupService = SpringApplicationContextUtil.getBean(TaskGroupService.class);
+                taskGroupService.addGroup(info);
+            } else {
+                log.info(msg.toString());
+            }
         }
 
         @Override

@@ -24,6 +24,18 @@ public class Point extends BaseEntity {
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TaskGroup taskGroup;
 
+    public Point() {}
+
+    public Point(String ip, int port) {
+        this.ip = ip;
+        this.port = port;
+    }
+
+    public Point(String ip, int port, TaskGroup taskGroup) {
+        this.ip = ip;
+        this.port = port;
+        this.taskGroup = taskGroup;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -33,16 +45,14 @@ public class Point extends BaseEntity {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
         Point point = (Point) o;
         return port == point.port &&
-                ip.equals(point.ip);
+                ip.equals(point.ip) &&
+                Objects.equals(taskGroup, point.taskGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), ip, port);
+        return Objects.hash(ip, port, taskGroup);
     }
 }

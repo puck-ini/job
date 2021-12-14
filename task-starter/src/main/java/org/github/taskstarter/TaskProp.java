@@ -16,6 +16,8 @@ public class TaskProp {
 
     private Task task = new Task();
 
+    private String zkAddress = "127.0.0.1:2181";
+
     @Data
     static class Task {
 

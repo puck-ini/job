@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author zengchzh
@@ -37,8 +39,8 @@ public class RepoTests {
     @Test
     void init() {
         TaskGroup taskGroup = new TaskGroup();
-        List<TaskInfo> taskInfoList = new ArrayList<>();
-        List<Point> pointList = new ArrayList<>();
+        Set<TaskInfo> taskInfoList = new HashSet<>();
+        Set<Point> pointList = new HashSet<>();
         for (int i = 0; i < 10; i++) {
             String s = String.valueOf(i);
             TaskInfo taskInfo = new TaskInfo();
@@ -54,7 +56,7 @@ public class RepoTests {
             point.setPort(i);
             point.setTaskGroup(taskGroup);
             pointList.add(point);
-            List<TaskTrigger> taskTriggerList = new ArrayList<>();
+            Set<TaskTrigger> taskTriggerList = new HashSet<>();
             for (int j = 0; j < 10; j++) {
                 String s1 = String.valueOf(j);
                 TaskTrigger taskTrigger = new TaskTrigger();
@@ -62,10 +64,10 @@ public class RepoTests {
                 taskTrigger.setTaskInfo(taskInfo);
                 taskTriggerList.add(taskTrigger);
             }
-            taskInfo.setTriggerList(taskTriggerList);
+            taskInfo.setTriggerSet(taskTriggerList);
         }
-        taskGroup.setPointList(pointList);
-        taskGroup.setTaskInfoList(taskInfoList);
+        taskGroup.setPointSet(pointList);
+        taskGroup.setTaskInfoSet(taskInfoList);
         taskGroupRepo.save(taskGroup);
     }
 
@@ -74,13 +76,13 @@ public class RepoTests {
         List<TaskGroup> taskGroupList = taskGroupRepo.findAll();
         for (TaskGroup group : taskGroupList) {
             log.info(group.toString());
-            for (TaskInfo taskInfo : group.getTaskInfoList()) {
+            for (TaskInfo taskInfo : group.getTaskInfoSet()) {
                 log.info(taskInfo.toString());
-                for (TaskTrigger taskTrigger : taskInfo.getTriggerList()) {
+                for (TaskTrigger taskTrigger : taskInfo.getTriggerSet()) {
                     log.info(taskTrigger.toString());
                 }
             }
-            for (Point point : group.getPointList()) {
+            for (Point point : group.getPointSet()) {
                 log.info(point.toString());
             }
         }

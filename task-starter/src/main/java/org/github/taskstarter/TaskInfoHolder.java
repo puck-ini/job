@@ -1,15 +1,14 @@
 package org.github.taskstarter;
 
 import com.alibaba.fastjson.JSON;
-import org.github.common.ServerUtil;
-import org.github.common.TaskDesc;
+import org.github.common.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +24,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent> {
 
-    @Resource
+    @Autowired
     private TaskProp taskProp;
+
+    @Autowired
+    private ZkRegister zkRegister;
 
     @Value("${spring.application.name:null}")
     private String appName;
 
     private ApplicationContext context;
+
+    private static TaskAppInfo taskAppInfo;
 
     private static final Map<String, Object> CACHE = new ConcurrentHashMap<>();
 
@@ -41,10 +45,9 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
             context = event.getApplicationContext();
             init();
             startServer();
+            registerGroup();
         }
     }
-
-
 
     private void init() {
         String[] names = context.getBeanDefinitionNames();
@@ -76,11 +79,7 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
         }).start();
     }
 
-    public static Object get(String key) {
-        return CACHE.get(key);
-    }
-
-    public TaskAppInfo getTaskInfo() {
+    private void registerGroup() {
         String[] names = context.getBeanDefinitionNames();
         TaskAppInfo taskAppInfo = TaskAppInfo.builder()
                 .appName(appName)
@@ -122,7 +121,22 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
             }
         }
         taskAppInfo.setTaskDescList(taskDescList);
-        return taskAppInfo;
+        TaskInfoHolder.taskAppInfo = taskAppInfo;
+        if (taskDescList.size() != 0) {
+            zkRegister.register(ServiceObject.builder()
+                    .groupName(taskAppInfo.getAppName())
+                    .ip(taskAppInfo.getIp())
+                    .port(taskAppInfo.getPort())
+                    .build());
+        }
+    }
+
+    public static Object get(String key) {
+        return CACHE.get(key);
+    }
+
+    public static TaskAppInfo getTaskInfo() {
+        return TaskInfoHolder.taskAppInfo;
     }
 
 }

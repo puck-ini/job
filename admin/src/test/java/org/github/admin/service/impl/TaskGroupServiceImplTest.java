@@ -9,6 +9,8 @@ import org.github.admin.req.CreateTriggerReq;
 import org.github.admin.service.TaskGroupService;
 import org.github.admin.service.TaskService;
 import org.github.admin.service.TaskTriggerService;
+import org.github.common.TaskAppInfo;
+import org.github.common.TaskDesc;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +28,17 @@ class TaskGroupServiceImplTest {
     @Autowired
     TaskTriggerService taskTriggerService;
 
+
+    @Test
+    void addTaskAppInfo() {
+        TaskAppInfo taskAppInfo = new TaskAppInfo();
+        taskAppInfo.setAppName("test123");
+        taskAppInfo.setIp("127.0.0.1");
+        taskAppInfo.setPort(39900);
+        taskAppInfo.getTaskDescList().add(TaskDesc.builder().className("").methodName("").parameterTypes("").taskName("").build());
+        taskGroupService.addGroup(taskAppInfo);
+    }
+
     @Test
     void addGroup() {
         CreateGroupReq req = new CreateGroupReq();
@@ -33,7 +46,7 @@ class TaskGroupServiceImplTest {
         point.setIp("127.0.0.1");
         point.setPort(30003);
         req.setName("test1");
-        req.getPointList().add(point);
+        req.getPointSet().add(point);
         taskGroupService.createGroup(req);
     }
 

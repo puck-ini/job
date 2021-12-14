@@ -1,5 +1,7 @@
 package org.github.taskstarter;
 
+import org.github.common.ZkRegister;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,5 +22,10 @@ public class AutoConfiguration {
     @Bean
     public TaskInfoHolder taskInfoHolder() {
         return new TaskInfoHolder();
+    }
+
+    @Bean
+    public ZkRegister zkRegister(@Autowired TaskProp taskProp) {
+        return new ZkRegister(taskProp.getZkAddress());
     }
 }

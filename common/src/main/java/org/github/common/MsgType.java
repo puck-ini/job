@@ -8,7 +8,9 @@ public enum MsgType {
 
     REQ((byte) 0),
     RES((byte) 1),
-    BEAT((byte) 3)
+    BEAT((byte) 3),
+    PRE_REQ((byte) 4),
+    PRE_RES((byte) 5),
     ;
 
     private final byte code;

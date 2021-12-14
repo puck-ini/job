@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @date 2021/12/10
  */
 public interface TaskGroupRepo extends JpaRepository<TaskGroup, Long> {
+
+    TaskGroup findByName(String name);
 }

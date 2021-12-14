@@ -2,15 +2,16 @@ package org.github.admin;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.entity.Point;
-import org.github.admin.entity.TaskTrigger;
+import org.github.admin.entity.*;
+import org.github.admin.entity.TimerTask;
 import org.github.admin.service.TaskTriggerService;
-import org.github.common.TaskDesc;
+import org.github.common.ServiceObject;
 import org.github.common.TaskReq;
+import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
@@ -40,7 +41,10 @@ public class TaskScheduler {
     @Autowired
     private TaskTriggerService taskTriggerService;
 
-    private static volatile Map<Integer, List<TaskTrigger>> triggerMap = new ConcurrentHashMap<>();
+    @Autowired
+    private ZkRegister zkRegister;
+
+    private static volatile Map<Integer, List<TimerTask>> taskMap = new ConcurrentHashMap<>();
 
     private Map<Point, TaskInvocation> invocationMap = new ConcurrentHashMap<>();
 
@@ -61,14 +65,12 @@ public class TaskScheduler {
             e.printStackTrace();
         }
         while (!checkThreadStop) {
-            log.info(Thread.currentThread().getName());
             checkTimeout();
         }
     });
 
     private final Thread triggerThread = threadFactory.newThread(() -> {
         while (!triggerThreadStop) {
-            log.info(Thread.currentThread().getName());
             trigger();
         }
     });
@@ -76,6 +78,7 @@ public class TaskScheduler {
     public void start() {
         checkThread.start();
         triggerThread.start();
+        startPreReq();
     }
 
     private void checkTimeout() {
@@ -109,18 +112,18 @@ public class TaskScheduler {
     private void addTrigger(List<TaskTrigger> taskTriggerList) {
         for (TaskTrigger trigger : taskTriggerList) {
             int index = (int) ((trigger.getNextTime() / 1000) % 60);
-            List<TaskTrigger> triggerList = triggerMap.computeIfAbsent(index, k -> new ArrayList<>());
-            triggerList.add(trigger);
+            List<TimerTask> triggerList = taskMap.computeIfAbsent(index, k -> new ArrayList<>());
+            triggerList.add(new RemoteTask(trigger));
         }
     }
 
     private void trigger() {
         try {
             int nowSecond = waitForNextTick();
-            List<TaskTrigger> triggerList = triggerMap.remove(nowSecond);
-            if (!CollectionUtils.isEmpty(triggerList)) {
-                triggerList.forEach(this::invoke);
-                triggerList.clear();
+            List<TimerTask> taskList = taskMap.remove(nowSecond);
+            if (!CollectionUtils.isEmpty(taskList)) {
+                taskList.forEach(this::invoke);
+                taskList.clear();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -137,22 +140,28 @@ public class TaskScheduler {
         return Calendar.getInstance().get(Calendar.SECOND);
     }
 
-    private void invoke(TaskTrigger taskTrigger) {
-        log.info("trigger : " + taskTrigger.toString());
-        List<Point> pointList = taskTrigger.getTaskInfo().getTaskGroup().getPointList();
-        TaskInvocation invocation = invocationMap.computeIfAbsent(
-                pointList.get(new Random().nextInt(pointList.size())),
-                k -> new TaskInvocation(k, invocationMap)
-        );
-        TaskDesc taskDesc = taskTrigger.getTaskInfo().getTaskDesc();
-        TaskReq req = TaskReq.builder()
-                .requestId(UUID.randomUUID().toString())
-                .className(taskDesc.getClassName())
-                .methodName(taskDesc.getMethodName())
-                .parameterTypes(parseTypesJson(taskDesc.getParameterTypes()))
-                .parameters(parseParaJson(taskTrigger.getParameters()))
-                .build();
-        invocation.invoke(req);
+    private void invoke(TimerTask task) {
+        if (task instanceof RemoteTask) {
+            RemoteTask remoteTask = (RemoteTask) task;
+            Set<Point> pointSet = remoteTask.getPointSet();
+            TaskInvocation invocation = invocationMap.computeIfAbsent(
+                    (Point) pointSet.toArray()[new Random().nextInt(pointSet.size())],
+                    k -> new TaskInvocation(k, invocationMap)
+            );
+            TaskReq req = TaskReq.builder()
+                    .requestId(UUID.randomUUID().toString())
+                    .className(remoteTask.getClassName())
+                    .methodName(remoteTask.getMethodName())
+                    .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
+                    .parameters(parseParaJson(remoteTask.getParameters()))
+                    .build();
+            invocation.invoke(req);
+        } else if (task instanceof LocalTask) {
+            LocalTask localTask = (LocalTask) task;
+            localTask.run();
+            addTask(localTask);
+        }
+
     }
 
     private Class[] parseTypesJson(String json) {
@@ -173,6 +182,29 @@ public class TaskScheduler {
         }
         List<Object> objects = JSON.parseArray(json, Object.class);
         return objects.toArray();
+    }
+
+    private void startPreReq() {
+        LocalTask task = new LocalTask(() -> {
+            List<ServiceObject> soList = zkRegister.getAll();
+            soList.forEach(so -> {
+                TaskInvocation invocation = invocationMap.computeIfAbsent(
+                        new Point(so.getIp(), so.getPort()),
+                        k -> new TaskInvocation(k, invocationMap)
+                );
+                invocation.preRead();
+            });
+        }, "0/30 * * * * ? ");
+        addTask(task);
+    }
+
+    public static void addTask(LocalTask task) {
+        if (Objects.isNull(task)) {
+            return;
+        }
+        int index = (int) (((task.getNextTime()) / 1000) % 60);
+        List<TimerTask> taskList = taskMap.computeIfAbsent(index, k -> new ArrayList<>());
+        taskList.add(task);
     }
 
     public void stop() {
