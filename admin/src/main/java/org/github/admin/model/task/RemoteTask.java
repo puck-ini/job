@@ -72,4 +72,9 @@ public class RemoteTask implements TimerTask{
         this.lastTime = trigger.getLastTime();
         this.nextTime = trigger.getNextTime();
     }
+
+    @Override
+    public long getNextTime() {
+        return this.nextTime;
+    }
 }

@@ -11,12 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class TaskTestApplicationTests {
 
-    @Autowired
-    private TaskInfoHolder taskInfoHolder;
-
     @Test
     void logTaskInfo() {
-        log.info(taskInfoHolder.getTaskInfo().toString());
+        log.info(TaskInfoHolder.getTaskInfo().toString());
     }
 
 

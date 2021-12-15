@@ -29,7 +29,7 @@ public class TaskScheduler {
 
     private static final long DELAY_TIME = 5000L;
 
-    private static final long PRE_READ_TIME = DELAY_TIME;
+    public static final long PRE_READ_TIME = 5000L;
 
     private static final Integer PRE_READ_SIZE = 1000;
 
@@ -77,7 +77,7 @@ public class TaskScheduler {
     public void start() {
         checkThread.start();
         triggerThread.start();
-        startPreReq();
+        preConnect();
     }
 
     private void checkTimeout() {
@@ -86,7 +86,9 @@ public class TaskScheduler {
             boolean checkSuccess = false;
             List<TaskTrigger> taskTriggerList = taskTriggerService.getDeadlineTrigger(PRE_READ_TIME, PRE_READ_SIZE);
             if (!CollectionUtils.isEmpty(taskTriggerList)) {
-                addTrigger(taskTriggerList);
+                for (TaskTrigger trigger : taskTriggerList) {
+                    addTask(new RemoteTask(trigger));
+                }
                 taskTriggerService.refreshTriggerTime(taskTriggerList);
                 checkSuccess = true;
             }
@@ -108,12 +110,13 @@ public class TaskScheduler {
         }
     }
 
-    private void addTrigger(List<TaskTrigger> taskTriggerList) {
-        for (TaskTrigger trigger : taskTriggerList) {
-            int index = (int) ((trigger.getNextTime() / 1000) % 60);
-            List<TimerTask> triggerList = taskMap.computeIfAbsent(index, k -> new ArrayList<>());
-            triggerList.add(new RemoteTask(trigger));
+    public static void addTask(TimerTask task) {
+        if (Objects.isNull(task)) {
+            return;
         }
+        int index = (int) ((task.getNextTime() / 1000) % 60);
+        List<TimerTask> taskList = taskMap.computeIfAbsent(index, k -> new ArrayList<>());
+        taskList.add(task);
     }
 
     private void trigger() {
@@ -160,7 +163,6 @@ public class TaskScheduler {
             localTask.run();
             addTask(localTask);
         }
-
     }
 
     private Class[] parseTypesJson(String json) {
@@ -183,7 +185,7 @@ public class TaskScheduler {
         return objects.toArray();
     }
 
-    private void startPreReq() {
+    private void preConnect() {
         LocalTask task = new LocalTask(() -> {
             List<ServiceObject> soList = zkRegister.getAll();
             soList.forEach(so -> {
@@ -195,15 +197,6 @@ public class TaskScheduler {
             });
         }, "0/30 * * * * ? ");
         addTask(task);
-    }
-
-    public static void addTask(LocalTask task) {
-        if (Objects.isNull(task)) {
-            return;
-        }
-        int index = (int) (((task.getNextTime()) / 1000) % 60);
-        List<TimerTask> taskList = taskMap.computeIfAbsent(index, k -> new ArrayList<>());
-        taskList.add(task);
     }
 
     public void stop() {

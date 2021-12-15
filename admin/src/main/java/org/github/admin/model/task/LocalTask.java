@@ -1,8 +1,6 @@
 package org.github.admin.model.task;
 
-import org.github.admin.util.CronExpression;
-
-import java.text.ParseException;
+import org.github.admin.util.CronExpUtil;
 import java.util.Date;
 
 /**
@@ -34,13 +32,10 @@ public class LocalTask implements TimerTask {
     }
 
     private void refresh(Date date) {
-        try {
-            this.nextTime = new CronExpression(cron).getNextValidTimeAfter(date).getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        this.nextTime = CronExpUtil.getNextTime(cron, date);
     }
 
+    @Override
     public long getNextTime() {
         return nextTime;
     }

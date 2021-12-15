@@ -5,14 +5,14 @@ import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.model.req.CreateTriggerReq;
+import org.github.admin.service.TaskScheduler;
 import org.github.admin.service.TaskTriggerService;
-import org.github.admin.util.CronExpression;
+import org.github.admin.util.CronExpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -59,7 +59,10 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
                 taskTrigger.setStatus(TaskTrigger.TriggerStatus.RUNNING);
                 taskTrigger.setStartTime(System.currentTimeMillis());
                 taskTrigger.setLastTime(taskTrigger.getNextTime());
-                taskTrigger.setNextTime(getNextTime(taskTrigger.getCronExpression(), new Date()) + 5000);
+                taskTrigger.setNextTime(CronExpUtil.getNextTime(
+                        taskTrigger.getCronExpression(),
+                        new Date()) + TaskScheduler.PRE_READ_TIME
+                );
                 taskTriggerRepo.save(taskTrigger);
             }
         });
@@ -102,18 +105,8 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         triggerList.forEach(i -> {
             long nextTime = i.getNextTime();
             i.setLastTime(nextTime);
-            i.setNextTime(getNextTime(i.getCronExpression(), new Date(nextTime)));
+            i.setNextTime(CronExpUtil.getNextTime(i.getCronExpression(), new Date(nextTime)));
         });
         taskTriggerRepo.saveAll(triggerList);
-    }
-
-
-    private Long getNextTime(String cron, Date date) {
-        try {
-            return new CronExpression(cron).getNextValidTimeAfter(date).getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return 0L;
     }
 }

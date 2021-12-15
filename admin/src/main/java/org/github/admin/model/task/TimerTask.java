@@ -5,4 +5,7 @@ package org.github.admin.model.task;
  * @date 2021/12/14
  */
 public interface TimerTask {
+
+
+    long getNextTime();
 }

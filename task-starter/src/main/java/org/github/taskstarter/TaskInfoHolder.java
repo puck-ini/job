@@ -75,7 +75,7 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
 
     private void startServer() {
         new Thread(() -> {
-            new TaskServer(taskProp.getTask().getPort()).start();
+            new TaskServer(taskProp.getPort()).start();
         }).start();
     }
 
@@ -84,7 +84,7 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
         TaskAppInfo taskAppInfo = TaskAppInfo.builder()
                 .appName(appName)
                 .ip(ServerUtil.getHost())
-                .port(taskProp.getTask().getPort())
+                .port(taskProp.getPort())
                 .build();
         List<TaskDesc> taskDescList = new ArrayList<>();
         for (String name : names) {
