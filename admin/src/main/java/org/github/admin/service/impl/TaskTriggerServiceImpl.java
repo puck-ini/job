@@ -1,11 +1,16 @@
 package org.github.admin.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.github.admin.model.entity.Point;
 import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.model.entity.TaskTrigger;
+import org.github.admin.model.task.RemoteTask;
 import org.github.admin.repo.TaskInfoRepo;
+import org.github.admin.repo.TaskLockRepo;
 import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.model.req.CreateTriggerReq;
+import org.github.admin.scheduler.TaskInvocation;
+import org.github.admin.scheduler.TaskScheduler;
 import org.github.admin.service.TaskTriggerService;
 import org.github.admin.util.CronExpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +18,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 /**
@@ -33,6 +39,15 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
 
     @Autowired
     private TaskInfoRepo taskInfoRepo;
+
+    @Autowired
+    private TaskLockRepo taskLockRepo;
+
+    private static final long PRE_READ_TIME = 5000L;
+
+    private static final int PRE_READ_SIZE = 1000;
+
+    private static final String LOCK_NAME = "task_lock";
 
     @Override
     public Page<TaskTrigger> list() {
@@ -114,5 +129,33 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
             i.setNextTime(CronExpUtil.getNextTime(i.getCronExpression(), new Date(nextTime)));
         });
         taskTriggerRepo.saveAll(triggerList);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean checkTimeout(TaskScheduler taskScheduler) {
+        lock();
+        boolean checkSuccess = false;
+        List<TaskTrigger> taskTriggerList = getDeadlineTrigger(PRE_READ_TIME, PRE_READ_SIZE);
+        if (!CollectionUtils.isEmpty(taskTriggerList)) {
+            for (TaskTrigger trigger : taskTriggerList) {
+                RemoteTask task = new RemoteTask(trigger);
+                taskScheduler.addTask(task);
+                for (Point point : task.getPointSet()) {
+                    if (!taskScheduler.contains(point)) {
+                        CompletableFuture.runAsync(() -> {
+                            taskScheduler.registerInvocation(point, new TaskInvocation(point, taskScheduler));
+                        });
+                    }
+                }
+            }
+            refreshTriggerTime(taskTriggerList);
+            checkSuccess = true;
+        }
+        return checkSuccess;
+    }
+
+    public void lock() {
+        taskLockRepo.findByLockName(LOCK_NAME);
     }
 }

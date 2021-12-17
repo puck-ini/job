@@ -2,6 +2,7 @@ package org.github.admin.service;
 
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.model.req.CreateTriggerReq;
+import org.github.admin.scheduler.TaskScheduler;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
@@ -27,4 +28,6 @@ public interface TaskTriggerService {
     List<TaskTrigger> getDeadlineTrigger(Long maxTime, Integer size);
 
     void refreshTriggerTime(List<TaskTrigger> triggerList);
+
+    boolean checkTimeout(TaskScheduler taskScheduler);
 }

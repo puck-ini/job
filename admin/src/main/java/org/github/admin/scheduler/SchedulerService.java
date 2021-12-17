@@ -1,5 +1,6 @@
 package org.github.admin.scheduler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.Point;
 import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.task.TimerTask;
@@ -9,10 +10,8 @@ import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+
+import java.util.*;
 
 
 /**
@@ -20,6 +19,7 @@ import java.util.Random;
  * @date 2021/12/16
  */
 
+@Slf4j
 @Component
 public class SchedulerService {
 
@@ -29,7 +29,7 @@ public class SchedulerService {
     @Autowired
     private ZkRegister zkRegister;
 
-    private int size = 1;
+    private int size = 10;
 
 
     private Map<String, CheckTimeoutThread> threadMap = new HashMap<>();
@@ -38,14 +38,14 @@ public class SchedulerService {
     public void addCheckThread() {
         if (threadMap.values().size() < size) {
             TaskScheduler scheduler = new TaskScheduler();
-            preConnect(scheduler);
+//            preGetTaskInfo(scheduler);
             CheckTimeoutThread timeoutThread = new CheckTimeoutThread(taskTriggerService, scheduler);
             timeoutThread.start();
             threadMap.put(timeoutThread.getName(), timeoutThread);
         }
     }
 
-    private void preConnect(TaskScheduler scheduler) {
+    private void preGetTaskInfo(TaskScheduler scheduler) {
         LocalTask task = new LocalTask(() -> {
             List<ServiceObject> soList = zkRegister.getAll();
             soList.forEach(so -> {
@@ -70,9 +70,12 @@ public class SchedulerService {
 
 
     public void stop() {
-        for (CheckTimeoutThread timeoutThread : threadMap.values()) {
+        Iterator<Map.Entry<String, CheckTimeoutThread>> iterator = threadMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<String, CheckTimeoutThread> entry = iterator.next();
+            CheckTimeoutThread timeoutThread = entry.getValue();
             timeoutThread.toStop();
-            threadMap.remove(timeoutThread.getName());
+            iterator.remove();
         }
     }
 

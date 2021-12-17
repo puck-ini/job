@@ -9,10 +9,12 @@ import org.github.admin.model.task.TimerTask;
 import org.github.common.TaskReq;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author zengchzh
@@ -34,19 +36,21 @@ public class TaskScheduler {
 
     private volatile Map<Point, Invocation> invocationMap = new ConcurrentHashMap<>();
 
+    private static final AtomicInteger COUNTER = new AtomicInteger(0);
+
     private final ThreadFactory threadFactory = new ThreadFactory() {
         @Override
         public Thread newThread(Runnable r) {
             Thread thread = new Thread(r);
             thread.setDaemon(true);
-            thread.setName("scheduler-" + r.hashCode());
+            thread.setName("scheduler-" + COUNTER.getAndIncrement());
             return thread;
         }
     };
 
     private final Thread triggerThread = threadFactory.newThread(() -> {
         while (schedulerState.get() == START) {
-            trigger();
+            run();
         }
     });
 
@@ -66,15 +70,13 @@ public class TaskScheduler {
         taskList.add(task);
     }
 
-    private void trigger() {
+    private void run() {
         try {
             int nowSecond = waitForNextTick();
-            log.info("nowSecond : " + nowSecond);
             List<TimerTask> taskList = taskMap.remove(nowSecond);
             if (!CollectionUtils.isEmpty(taskList)) {
-                long start = System.currentTimeMillis();
+                log.info(Thread.currentThread().getName() + " - invoke - " + LocalDateTime.now());
                 taskList.forEach(this::runTask);
-                log.info("cost : " + (System.currentTimeMillis() - start));
                 taskList.clear();
             }
         } catch (Exception e) {
@@ -153,8 +155,11 @@ public class TaskScheduler {
 
     public void stop() {
         schedulerState.compareAndSet(START, STOP);
-        for (Map.Entry<Point, Invocation> entry : invocationMap.entrySet()) {
-            invocationMap.remove(entry.getKey()).disconnect();
+        Iterator<Map.Entry<Point, Invocation>> iterator = invocationMap.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Point, Invocation> entry = iterator.next();
+            entry.getValue().disconnect();
+            iterator.remove();
         }
     }
 
