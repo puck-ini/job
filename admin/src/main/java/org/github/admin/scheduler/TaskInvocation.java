@@ -1,4 +1,4 @@
-package org.github.admin.service;
+package org.github.admin.scheduler;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -12,11 +12,11 @@ import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.Point;
+import org.github.admin.service.TaskGroupService;
 import org.github.admin.util.SpringApplicationContextUtil;
 import org.github.common.*;
 
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @date 2021/12/11
  */
 @Slf4j
-public class TaskInvocation {
+public class TaskInvocation implements Invocation {
 
     private final EventLoopGroup workGroup = new NioEventLoopGroup(1);
 
@@ -33,13 +33,13 @@ public class TaskInvocation {
 
     private Channel channel;
 
-    private Point point;
+    private final Point point;
 
-    private Map<Point, TaskInvocation> invocationMap;
+    private final TaskScheduler taskScheduler;
 
-    public TaskInvocation(Point point, Map<Point, TaskInvocation> invocationMap) {
+    public TaskInvocation(Point point, TaskScheduler taskScheduler) {
         this.point = point;
-        this.invocationMap = invocationMap;
+        this.taskScheduler = taskScheduler;
         try {
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(workGroup)
@@ -65,6 +65,8 @@ public class TaskInvocation {
                 public void operationComplete(ChannelFuture future) throws Exception {
                     if (future.isSuccess()) {
                         cp.trySuccess(future.channel());
+                    } else {
+                        log.error("connect fail");
                     }
                 }
             });
@@ -77,7 +79,7 @@ public class TaskInvocation {
         workGroup.shutdownGracefully();
     }
 
-
+    @Override
     public void invoke(TaskReq req) {
         if (Objects.isNull(channel)) {
             try {
@@ -109,7 +111,7 @@ public class TaskInvocation {
                 TaskGroupService taskGroupService = SpringApplicationContextUtil.getBean(TaskGroupService.class);
                 taskGroupService.addGroup(info);
             } else {
-//                log.info(msg.toString());
+                log.info(msg.toString());
             }
         }
 
@@ -124,7 +126,10 @@ public class TaskInvocation {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             log.error("InvocationHandler exceptionCaught", cause);
-            TaskInvocation.this.invocationMap.remove(TaskInvocation.this.point).disconnect();
+            Invocation invocation = taskScheduler.remove(TaskInvocation.this.point);
+            if (invocation instanceof TaskInvocation) {
+                ((TaskInvocation) invocation).disconnect();
+            }
             ctx.close();
         }
     }

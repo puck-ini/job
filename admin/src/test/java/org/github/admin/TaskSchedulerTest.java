@@ -3,7 +3,8 @@ package org.github.admin;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.entity.TaskTrigger;
-import org.github.admin.service.TaskScheduler;
+import org.github.admin.scheduler.SchedulerService;
+import org.github.admin.scheduler.TaskScheduler;
 import org.github.admin.service.TaskTriggerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -20,14 +21,16 @@ import java.util.stream.Collectors;
 class TaskSchedulerTest {
 
     @Autowired
-    private TaskScheduler taskScheduler;
+    private SchedulerService schedulerService;
 
     @Autowired
     private TaskTriggerService taskTriggerService;
 
     @Test
     void init() {
-        taskScheduler.start();
+        schedulerService.addCheckThread();
+        List<TaskTrigger> taskTriggerList = taskTriggerService.list().getContent();
+        taskTriggerService.startTrigger(taskTriggerList.stream().map(TaskTrigger::getId).collect(Collectors.toList()));
     }
 
 
@@ -42,7 +45,7 @@ class TaskSchedulerTest {
         LocalTask task = new LocalTask(() -> {
             log.info("hello world : " + LocalDateTime.now());
         }, "0/1 * * * * ? ");
-        TaskScheduler.addTask(task);
+        schedulerService.addTask(task);
     }
 
     @AfterEach
@@ -50,7 +53,7 @@ class TaskSchedulerTest {
         TimeUnit.SECONDS.sleep(20);
         List<TaskTrigger> taskTriggerList = taskTriggerService.list().getContent();
         taskTriggerService.stopTrigger(taskTriggerList.stream().map(TaskTrigger::getId).collect(Collectors.toList()));
-        taskScheduler.stop();
+        schedulerService.stop();
     }
 
 }

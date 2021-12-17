@@ -1,4 +1,4 @@
-package org.github.admin.service;
+package org.github.admin.scheduler;
 
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
@@ -6,16 +6,13 @@ import org.github.admin.model.entity.*;
 import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.task.RemoteTask;
 import org.github.admin.model.task.TimerTask;
-import org.github.common.ServiceObject;
 import org.github.common.TaskReq;
-import org.github.common.ZkRegister;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author zengchzh
@@ -25,27 +22,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class TaskScheduler {
 
-    private static final long TICK  = 1000L;
+    public static final long TICK  = 1000L;
 
-    private static final long DELAY_TIME = 5000L;
+    private volatile AtomicBoolean schedulerState = new AtomicBoolean(STOP);
 
-    public static final long PRE_READ_TIME = 5000L;
+    private static final boolean START = true;
 
-    private static final Integer PRE_READ_SIZE = 1000;
+    private static final boolean STOP = false;
 
-    private volatile boolean checkThreadStop = false;
+    private volatile Map<Integer, List<TimerTask>> taskMap = new ConcurrentHashMap<>();
 
-    private volatile boolean triggerThreadStop = false;
-
-    @Autowired
-    private TaskTriggerService taskTriggerService;
-
-    @Autowired
-    private ZkRegister zkRegister;
-
-    private static volatile Map<Integer, List<TimerTask>> taskMap = new ConcurrentHashMap<>();
-
-    private Map<Point, TaskInvocation> invocationMap = new ConcurrentHashMap<>();
+    private volatile Map<Point, Invocation> invocationMap = new ConcurrentHashMap<>();
 
     private final ThreadFactory threadFactory = new ThreadFactory() {
         @Override
@@ -57,60 +44,20 @@ public class TaskScheduler {
         }
     };
 
-    private final Thread checkThread = threadFactory.newThread(() -> {
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        while (!checkThreadStop) {
-            checkTimeout();
-        }
-    });
-
     private final Thread triggerThread = threadFactory.newThread(() -> {
-        while (!triggerThreadStop) {
+        while (schedulerState.get() == START) {
             trigger();
         }
     });
 
     public void start() {
-        checkThread.start();
-        triggerThread.start();
-        preConnect();
-    }
-
-    private void checkTimeout() {
-        try {
-            long start = System.currentTimeMillis();
-            boolean checkSuccess = false;
-            List<TaskTrigger> taskTriggerList = taskTriggerService.getDeadlineTrigger(PRE_READ_TIME, PRE_READ_SIZE);
-            if (!CollectionUtils.isEmpty(taskTriggerList)) {
-                for (TaskTrigger trigger : taskTriggerList) {
-                    addTask(new RemoteTask(trigger));
-                }
-                taskTriggerService.refreshTriggerTime(taskTriggerList);
-                checkSuccess = true;
-            }
-            long cost = System.currentTimeMillis() - start;
-            if (cost < TICK) {
-                delayCheck(checkSuccess);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-    }
-
-    private void delayCheck(boolean checkSuccess) {
-        try {
-            TimeUnit.MILLISECONDS.sleep(checkSuccess ? TICK : DELAY_TIME);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (schedulerState.getAndSet(START) == STOP) {
+            triggerThread.start();
         }
     }
 
-    public static void addTask(TimerTask task) {
+    public void addTask(TimerTask task) {
+        start();
         if (Objects.isNull(task)) {
             return;
         }
@@ -124,7 +71,7 @@ public class TaskScheduler {
             int nowSecond = waitForNextTick();
             List<TimerTask> taskList = taskMap.remove(nowSecond);
             if (!CollectionUtils.isEmpty(taskList)) {
-                taskList.forEach(this::invoke);
+                taskList.forEach(this::runTask);
                 taskList.clear();
             }
         } catch (Exception e) {
@@ -142,13 +89,13 @@ public class TaskScheduler {
         return Calendar.getInstance().get(Calendar.SECOND);
     }
 
-    private void invoke(TimerTask task) {
+    public void runTask(TimerTask task) {
         if (task instanceof RemoteTask) {
             RemoteTask remoteTask = (RemoteTask) task;
             Set<Point> pointSet = remoteTask.getPointSet();
-            TaskInvocation invocation = invocationMap.computeIfAbsent(
+            Invocation invocation = invocationMap.computeIfAbsent(
                     (Point) pointSet.toArray()[new Random().nextInt(pointSet.size())],
-                    k -> new TaskInvocation(k, invocationMap)
+                    k -> new TaskInvocation(k, this)
             );
             TaskReq req = TaskReq.builder()
                     .requestId(UUID.randomUUID().toString())
@@ -185,23 +132,18 @@ public class TaskScheduler {
         return objects.toArray();
     }
 
-    private void preConnect() {
-        LocalTask task = new LocalTask(() -> {
-            List<ServiceObject> soList = zkRegister.getAll();
-            soList.forEach(so -> {
-                TaskInvocation invocation = invocationMap.computeIfAbsent(
-                        new Point(so.getIp(), so.getPort()),
-                        k -> new TaskInvocation(k, invocationMap)
-                );
-                invocation.preRead();
-            });
-        }, "0/30 * * * * ? ");
-        addTask(task);
+
+    public Invocation registerInvocation(Point point, Invocation invocation) {
+        invocationMap.put(point, invocation);
+        return invocationMap.get(point);
+    }
+
+    public Invocation remove(Point point) {
+        return invocationMap.remove(point);
     }
 
     public void stop() {
-        checkThreadStop = true;
-        triggerThreadStop = true;
+        schedulerState.compareAndSet(START, STOP);
     }
 
 

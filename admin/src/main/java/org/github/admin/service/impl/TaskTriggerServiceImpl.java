@@ -1,18 +1,20 @@
 package org.github.admin.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.model.req.CreateTriggerReq;
-import org.github.admin.service.TaskScheduler;
 import org.github.admin.service.TaskTriggerService;
 import org.github.admin.util.CronExpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -22,6 +24,7 @@ import java.util.function.Consumer;
  * @date 2021/12/10
  */
 
+@Slf4j
 @Service
 public class TaskTriggerServiceImpl implements TaskTriggerService {
 
@@ -61,13 +64,14 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
                 taskTrigger.setLastTime(taskTrigger.getNextTime());
                 taskTrigger.setNextTime(CronExpUtil.getNextTime(
                         taskTrigger.getCronExpression(),
-                        new Date()) + TaskScheduler.PRE_READ_TIME
+                        new Date()) + 5000L
                 );
                 taskTriggerRepo.save(taskTrigger);
             }
         });
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void startTrigger(List<Long> triggerIdList) {
         triggerIdList.forEach(this::startTrigger);
@@ -85,6 +89,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         });
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void stopTrigger(List<Long> triggerIdList) {
         triggerIdList.forEach(this::stopTrigger);
@@ -100,6 +105,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         return triggerPage.getContent();
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void refreshTriggerTime(List<TaskTrigger> triggerList) {
         triggerList.forEach(i -> {

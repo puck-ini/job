@@ -1,6 +1,6 @@
 package org.github.admin;
 
-import org.github.admin.service.TaskScheduler;
+import org.github.admin.scheduler.TaskScheduler;
 import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -12,13 +12,6 @@ public class AdminApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(AdminApplication.class, args);
-    }
-
-    @Bean
-    public TaskScheduler taskScheduler() {
-        TaskScheduler taskScheduler = new TaskScheduler();
-        taskScheduler.start();
-        return taskScheduler;
     }
 
     @Value("${zk.address:127.0.0.1:2181}")
