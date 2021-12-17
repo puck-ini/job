@@ -29,6 +29,8 @@ public class TaskInvocation implements Invocation {
 
     private final EventLoopGroup workGroup = new NioEventLoopGroup(1);
 
+    Bootstrap bootstrap = new Bootstrap();
+
     private final Promise<Channel> cp = ImmediateEventExecutor.INSTANCE.newPromise();;
 
     private Channel channel;
@@ -40,26 +42,34 @@ public class TaskInvocation implements Invocation {
     public TaskInvocation(Point point, TaskScheduler taskScheduler) {
         this.point = point;
         this.taskScheduler = taskScheduler;
+        config();
+    }
+
+    private void config() {
+        bootstrap.group(workGroup)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) throws Exception {
+                        ChannelPipeline cp = ch.pipeline();
+                        cp.addLast(new IdleStateHandler(0, 0, 30, TimeUnit.SECONDS));
+                        cp.addLast(new MsgEncoder());
+                        cp.addLast(new LengthFieldBasedFrameDecoder(8 * 1024 * 1024,
+                                1,
+                                4,
+                                -5,
+                                0));
+                        cp.addLast(new MsgDecoder());
+                        cp.addLast(new InvocationHandler());
+                    }
+                });
+    }
+
+    @Override
+    public void connnect() {
         try {
-            Bootstrap bootstrap = new Bootstrap();
-            bootstrap.group(workGroup)
-                    .channel(NioSocketChannel.class)
-                    .option(ChannelOption.TCP_NODELAY, true)
-                    .handler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel ch) throws Exception {
-                            ChannelPipeline cp = ch.pipeline();
-                            cp.addLast(new IdleStateHandler(0, 0, 30, TimeUnit.SECONDS));
-                            cp.addLast(new MsgEncoder());
-                            cp.addLast(new LengthFieldBasedFrameDecoder(8 * 1024 * 1024,
-                                    1,
-                                    4,
-                                    -5,
-                                    0));
-                            cp.addLast(new MsgDecoder());
-                            cp.addLast(new InvocationHandler());
-                        }
-                    });
             bootstrap.connect(point.getIp(), point.getPort()).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
@@ -75,31 +85,30 @@ public class TaskInvocation implements Invocation {
         }
     }
 
-    public void disconnect() {
-        workGroup.shutdownGracefully();
+    @Override
+    public void invoke(TaskReq req) {
+        getChannel().writeAndFlush(TaskMsg.builder().msgType(MsgType.REQ).data(req).build());
+    }
+
+    private Channel getChannel() {
+        if (Objects.isNull(channel)) {
+            try {
+                channel = cp.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+        return channel;
     }
 
     @Override
-    public void invoke(TaskReq req) {
-        if (Objects.isNull(channel)) {
-            try {
-                channel = cp.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-        channel.writeAndFlush(TaskMsg.builder().msgType(MsgType.REQ).data(req).build());
+    public void disconnect() {
+        channel.close();
+        workGroup.shutdownGracefully();
     }
 
     public void preRead() {
-        if (Objects.isNull(channel)) {
-            try {
-                channel = cp.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-        channel.writeAndFlush(TaskMsg.builder().msgType(MsgType.PRE_REQ).build());
+        getChannel().writeAndFlush(TaskMsg.builder().msgType(MsgType.PRE_REQ).build());
     }
 
     class InvocationHandler extends SimpleChannelInboundHandler<TaskMsg> {
@@ -127,9 +136,7 @@ public class TaskInvocation implements Invocation {
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             log.error("InvocationHandler exceptionCaught", cause);
             Invocation invocation = taskScheduler.remove(TaskInvocation.this.point);
-            if (invocation instanceof TaskInvocation) {
-                ((TaskInvocation) invocation).disconnect();
-            }
+            invocation.disconnect();
             ctx.close();
         }
     }

@@ -69,9 +69,12 @@ public class TaskScheduler {
     private void trigger() {
         try {
             int nowSecond = waitForNextTick();
+            log.info("nowSecond : " + nowSecond);
             List<TimerTask> taskList = taskMap.remove(nowSecond);
             if (!CollectionUtils.isEmpty(taskList)) {
+                long start = System.currentTimeMillis();
                 taskList.forEach(this::runTask);
+                log.info("cost : " + (System.currentTimeMillis() - start));
                 taskList.clear();
             }
         } catch (Exception e) {
@@ -135,7 +138,13 @@ public class TaskScheduler {
 
     public Invocation registerInvocation(Point point, Invocation invocation) {
         invocationMap.put(point, invocation);
-        return invocationMap.get(point);
+        Invocation invocation1 = invocationMap.get(point);
+        invocation1.connnect();
+        return invocation1;
+    }
+
+    public boolean contains(Point point) {
+        return invocationMap.containsKey(point);
     }
 
     public Invocation remove(Point point) {
@@ -144,6 +153,9 @@ public class TaskScheduler {
 
     public void stop() {
         schedulerState.compareAndSet(START, STOP);
+        for (Map.Entry<Point, Invocation> entry : invocationMap.entrySet()) {
+            invocationMap.remove(entry.getKey()).disconnect();
+        }
     }
 
 

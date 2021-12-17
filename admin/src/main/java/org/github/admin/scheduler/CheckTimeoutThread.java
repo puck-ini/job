@@ -1,6 +1,7 @@
 package org.github.admin.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.github.admin.model.entity.Point;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.model.task.RemoteTask;
 import org.github.admin.service.TaskTriggerService;
@@ -8,6 +9,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -62,7 +64,15 @@ public class CheckTimeoutThread extends Thread {
         List<TaskTrigger> taskTriggerList = taskTriggerService.getDeadlineTrigger(PRE_READ_TIME, PRE_READ_SIZE);
         if (!CollectionUtils.isEmpty(taskTriggerList)) {
             for (TaskTrigger trigger : taskTriggerList) {
-                taskScheduler.addTask(new RemoteTask(trigger));
+                RemoteTask task = new RemoteTask(trigger);
+                taskScheduler.addTask(task);
+                for (Point point : task.getPointSet()) {
+                    if (!taskScheduler.contains(point)) {
+                        CompletableFuture.runAsync(() -> {
+                            taskScheduler.registerInvocation(point, new TaskInvocation(point, this.taskScheduler));
+                        });
+                    }
+                }
             }
             taskTriggerService.refreshTriggerTime(taskTriggerList);
             checkSuccess = true;

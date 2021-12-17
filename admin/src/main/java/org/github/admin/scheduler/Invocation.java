@@ -9,6 +9,9 @@ import org.github.common.TaskReq;
  */
 public interface Invocation {
 
+    void connnect();
 
     void invoke(TaskReq req);
+
+    void disconnect();
 }

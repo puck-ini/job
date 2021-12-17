@@ -38,7 +38,6 @@ public class SchedulerService {
     public void addCheckThread() {
         if (threadMap.values().size() < size) {
             TaskScheduler scheduler = new TaskScheduler();
-            scheduler.start();
             preConnect(scheduler);
             CheckTimeoutThread timeoutThread = new CheckTimeoutThread(taskTriggerService, scheduler);
             timeoutThread.start();
@@ -73,6 +72,7 @@ public class SchedulerService {
     public void stop() {
         for (CheckTimeoutThread timeoutThread : threadMap.values()) {
             timeoutThread.toStop();
+            threadMap.remove(timeoutThread.getName());
         }
     }
 
