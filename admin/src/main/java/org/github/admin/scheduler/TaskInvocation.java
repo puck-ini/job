@@ -103,7 +103,9 @@ public class TaskInvocation implements Invocation {
 
     @Override
     public void disconnect() {
-        channel.close();
+        if (Objects.nonNull(channel)) {
+            channel.close();
+        }
         workGroup.shutdownGracefully();
     }
 
@@ -120,7 +122,7 @@ public class TaskInvocation implements Invocation {
                 TaskGroupService taskGroupService = SpringApplicationContextUtil.getBean(TaskGroupService.class);
                 taskGroupService.addGroup(info);
             } else {
-                log.info(msg.toString());
+//                log.info(msg.toString());
             }
         }
 

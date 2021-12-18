@@ -1,6 +1,5 @@
 package org.github.admin.scheduler;
 
-import org.github.admin.model.task.TimerTask;
 import org.github.common.TaskReq;
 
 /**

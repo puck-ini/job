@@ -155,7 +155,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         return checkSuccess;
     }
 
-    public void lock() {
+    private void lock() {
         taskLockRepo.findByLockName(LOCK_NAME);
     }
 }

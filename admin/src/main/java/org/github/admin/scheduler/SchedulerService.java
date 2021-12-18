@@ -38,7 +38,7 @@ public class SchedulerService {
     public void addCheckThread() {
         if (threadMap.values().size() < size) {
             TaskScheduler scheduler = new TaskScheduler();
-//            preGetTaskInfo(scheduler);
+            preGetTaskInfo(scheduler);
             CheckTimeoutThread timeoutThread = new CheckTimeoutThread(taskTriggerService, scheduler);
             timeoutThread.start();
             threadMap.put(timeoutThread.getName(), timeoutThread);

@@ -75,14 +75,13 @@ public class TaskScheduler {
             int nowSecond = waitForNextTick();
             List<TimerTask> taskList = taskMap.remove(nowSecond);
             if (!CollectionUtils.isEmpty(taskList)) {
-                log.info(Thread.currentThread().getName() + " - invoke - " + LocalDateTime.now());
+                log.info(Thread.currentThread().getName() + " - invoke task size - " + taskList.size());
                 taskList.forEach(this::runTask);
                 taskList.clear();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     private int waitForNextTick() {
