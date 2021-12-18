@@ -68,7 +68,10 @@ public class TaskInvocation implements Invocation {
     }
 
     @Override
-    public void connnect() {
+    public synchronized void connnect() {
+        if (isAvailable()) {
+            return;
+        }
         try {
             bootstrap.connect(point.getIp(), point.getPort()).addListener(new ChannelFutureListener() {
                 @Override
@@ -77,6 +80,7 @@ public class TaskInvocation implements Invocation {
                         cp.trySuccess(future.channel());
                     } else {
                         log.error("connect fail");
+                        cp.tryFailure(future.cause());
                     }
                 }
             });
@@ -107,6 +111,11 @@ public class TaskInvocation implements Invocation {
             channel.close();
         }
         workGroup.shutdownGracefully();
+    }
+
+    @Override
+    public boolean isAvailable() {
+        return cp.isSuccess();
     }
 
     public void preRead() {

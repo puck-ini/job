@@ -13,4 +13,6 @@ public interface Invocation {
     void invoke(TaskReq req);
 
     void disconnect();
+
+    boolean isAvailable();
 }

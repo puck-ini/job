@@ -9,8 +9,8 @@ import org.github.admin.model.task.TimerTask;
 import org.github.common.TaskReq;
 import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -97,18 +97,30 @@ public class TaskScheduler {
         if (task instanceof RemoteTask) {
             RemoteTask remoteTask = (RemoteTask) task;
             Set<Point> pointSet = remoteTask.getPointSet();
-            Invocation invocation = invocationMap.computeIfAbsent(
-                    (Point) pointSet.toArray()[new Random().nextInt(pointSet.size())],
-                    k -> new TaskInvocation(k, this)
-            );
-            TaskReq req = TaskReq.builder()
-                    .requestId(UUID.randomUUID().toString())
-                    .className(remoteTask.getClassName())
-                    .methodName(remoteTask.getMethodName())
-                    .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
-                    .parameters(parseParaJson(remoteTask.getParameters()))
-                    .build();
-            invocation.invoke(req);
+            boolean invokeSuccess = false;
+            for (Point point : pointSet) {
+                Invocation invocation = invocationMap.computeIfAbsent(
+                        point,
+                        k -> new TaskInvocation(k, this)
+                );
+                if (invocation.isAvailable()) {
+                    TaskReq req = TaskReq.builder()
+                            .requestId(UUID.randomUUID().toString())
+                            .className(remoteTask.getClassName())
+                            .methodName(remoteTask.getMethodName())
+                            .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
+                            .parameters(parseParaJson(remoteTask.getParameters()))
+                            .build();
+                    invocation.invoke(req);
+                    invokeSuccess = true;
+                    break;
+                } else {
+                    CompletableFuture.runAsync(invocation::connnect);
+                }
+            }
+            if (!invokeSuccess) {
+                log.error(pointSet + " unavailable");
+            }
         } else if (task instanceof LocalTask) {
             LocalTask localTask = (LocalTask) task;
             localTask.run();
@@ -138,8 +150,7 @@ public class TaskScheduler {
 
 
     public Invocation registerInvocation(Point point, Invocation invocation) {
-        invocationMap.put(point, invocation);
-        Invocation invocation1 = invocationMap.get(point);
+        Invocation invocation1 = invocationMap.computeIfAbsent(point, k -> invocation);
         invocation1.connnect();
         return invocation1;
     }
