@@ -8,4 +8,8 @@ public interface TimerTask {
 
 
     long getNextTime();
+
+    void cancel();
+
+    boolean isCancel();
 }

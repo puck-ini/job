@@ -97,34 +97,25 @@ public class TaskScheduler {
         if (task instanceof RemoteTask) {
             RemoteTask remoteTask = (RemoteTask) task;
             Set<Point> pointSet = remoteTask.getPointSet();
-            boolean invokeSuccess = false;
-            for (Point point : pointSet) {
-                Invocation invocation = invocationMap.computeIfAbsent(
-                        point,
-                        k -> new TaskInvocation(k, this)
-                );
-                if (invocation.isAvailable()) {
-                    TaskReq req = TaskReq.builder()
-                            .requestId(UUID.randomUUID().toString())
-                            .className(remoteTask.getClassName())
-                            .methodName(remoteTask.getMethodName())
-                            .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
-                            .parameters(parseParaJson(remoteTask.getParameters()))
-                            .build();
-                    invocation.invoke(req);
-                    invokeSuccess = true;
-                    break;
-                } else {
-                    CompletableFuture.runAsync(invocation::connnect);
-                }
-            }
-            if (!invokeSuccess) {
+            Invocation invocation = getInvocation(pointSet);
+            if (Objects.isNull(invocation)) {
                 log.error(pointSet + " unavailable");
+                return;
             }
+            TaskReq req = TaskReq.builder()
+                    .requestId(UUID.randomUUID().toString())
+                    .className(remoteTask.getClassName())
+                    .methodName(remoteTask.getMethodName())
+                    .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
+                    .parameters(parseParaJson(remoteTask.getParameters()))
+                    .build();
+            invocation.invoke(req);
         } else if (task instanceof LocalTask) {
             LocalTask localTask = (LocalTask) task;
             localTask.run();
-            addTask(localTask);
+            if (!localTask.isCancel()) {
+                addTask(localTask);
+            }
         }
     }
 
@@ -148,11 +139,26 @@ public class TaskScheduler {
         return objects.toArray();
     }
 
+    private Invocation getInvocation(Set<Point> pointSet) {
+        Invocation invocation;
+        for (Point point : pointSet) {
+            invocation = invocationMap.computeIfAbsent(
+                    point,
+                    k -> new InvocationWrapper(new TaskInvocation(k, this))
+            );
+            if (invocation.isAvailable()) {
+                return invocation;
+            } else {
+                CompletableFuture.runAsync(invocation::connnect);
+            }
+        }
+        return null;
+    }
 
     public Invocation registerInvocation(Point point, Invocation invocation) {
-        Invocation invocation1 = invocationMap.computeIfAbsent(point, k -> invocation);
-        invocation1.connnect();
-        return invocation1;
+        Invocation invocationWrapper = invocationMap.computeIfAbsent(point, k -> new InvocationWrapper(invocation));
+        CompletableFuture.runAsync(invocationWrapper::connnect);
+        return invocation;
     }
 
     public boolean contains(Point point) {
@@ -173,5 +179,32 @@ public class TaskScheduler {
         }
     }
 
+    class InvocationWrapper implements Invocation {
 
+        private final Invocation invocation;
+
+        public InvocationWrapper(Invocation invocation) {
+            this.invocation = invocation;
+        }
+
+        @Override
+        public synchronized void connnect() {
+            invocation.connnect();
+        }
+
+        @Override
+        public void invoke(TaskReq req) {
+            invocation.invoke(req);
+        }
+
+        @Override
+        public void disconnect() {
+            invocation.disconnect();
+        }
+
+        @Override
+        public boolean isAvailable() {
+            return invocation.isAvailable();
+        }
+    }
 }

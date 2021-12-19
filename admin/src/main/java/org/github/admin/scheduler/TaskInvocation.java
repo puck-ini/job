@@ -69,6 +69,8 @@ public class TaskInvocation implements Invocation {
 
     @Override
     public synchronized void connnect() {
+        String threadName = Thread.currentThread().getName();
+        log.info(threadName + " connect " + point + " , available state is " + isAvailable());
         if (isAvailable()) {
             return;
         }
@@ -79,7 +81,7 @@ public class TaskInvocation implements Invocation {
                     if (future.isSuccess()) {
                         cp.trySuccess(future.channel());
                     } else {
-                        log.error("connect fail");
+                        log.error(threadName + " connect " + point + " fail");
                         cp.tryFailure(future.cause());
                     }
                 }

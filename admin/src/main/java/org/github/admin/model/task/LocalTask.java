@@ -20,9 +20,12 @@ public class LocalTask implements TimerTask {
      */
     private long nextTime;
 
+    private boolean cancel;
+
     public LocalTask(Runnable r, String cron) {
         this.r = r;
         this.cron = cron;
+        this.cancel = false;
         refresh(new Date(System.currentTimeMillis() + 3000));
     }
 
@@ -38,5 +41,15 @@ public class LocalTask implements TimerTask {
     @Override
     public long getNextTime() {
         return nextTime;
+    }
+
+    @Override
+    public void cancel() {
+        this.cancel = true;
+    }
+
+    @Override
+    public boolean isCancel() {
+        return this.cancel;
     }
 }
