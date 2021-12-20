@@ -60,11 +60,14 @@ class SchedulerServiceTest {
     @AfterEach
     void sleep() {
         try {
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(60);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        log.info("sleep end - " + LocalDateTime.now());
+        log.info("stop trigger - " + LocalDateTime.now());
         taskTriggerService.stopTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
+        log.info("stop scheduler thread - " + LocalDateTime.now());
         schedulerService.stop();
     }
 

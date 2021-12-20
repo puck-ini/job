@@ -183,12 +183,35 @@ public class TaskScheduler {
 
         private final Invocation invocation;
 
+        private final AtomicInteger count = new AtomicInteger(0);
+
+        private static final int MAX_COUNT = 5;
+
+        private LocalTask reConnectTask;
+
         public InvocationWrapper(Invocation invocation) {
             this.invocation = invocation;
         }
 
         @Override
         public synchronized void connnect() {
+            if (Objects.nonNull(reConnectTask)) {
+                return;
+            }
+            if (count.get() < MAX_COUNT) {
+                invocation.connnect();
+                if (Objects.isNull(reConnectTask)) {
+                    reConnectTask = new LocalTask(() -> {
+                        if (invocation.isAvailable() || count.getAndIncrement() >= MAX_COUNT) {
+                            reConnectTask.cancel();
+                        } else {
+                            CompletableFuture.runAsync(invocation::connnect);
+                        }
+                    }, "0/6 * * * * ? ");
+                    log.info(Thread.currentThread().getName() + " add reconnect task");
+                    addTask(reConnectTask);
+                }
+            }
             invocation.connnect();
         }
 
