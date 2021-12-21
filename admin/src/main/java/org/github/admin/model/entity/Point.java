@@ -44,11 +44,12 @@ public class Point extends BaseEntity {
         }
         Point point = (Point) o;
         return port == point.port &&
-                ip.equals(point.ip);
+                Objects.equals(ip, point.ip) &&
+                Objects.equals(taskGroup, point.taskGroup);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, port);
+        return Objects.hash(ip, port, taskGroup);
     }
 }

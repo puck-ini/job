@@ -2,8 +2,10 @@ package org.github.admin.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.Point;
+import org.github.admin.model.entity.TaskGroup;
 import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.task.TimerTask;
+import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.service.TaskTriggerService;
 import org.github.common.ServiceObject;
 import org.github.common.ZkRegister;
@@ -25,6 +27,9 @@ public class SchedulerService {
 
     @Autowired
     private TaskTriggerService taskTriggerService;
+
+    @Autowired
+    private TaskGroupRepo taskGroupRepo;
 
     @Autowired
     private ZkRegister zkRegister;
@@ -49,7 +54,14 @@ public class SchedulerService {
         LocalTask task = new LocalTask("GetTaskInfo", () -> {
             List<ServiceObject> soList = zkRegister.getAll();
             soList.forEach(so -> {
-                Point point = new Point(so.getIp(), so.getPort());
+                TaskGroup taskGroup = taskGroupRepo.findByName(so.getGroupName());
+                Point point = new Point(so.getIp(), so.getPort(), taskGroup);
+                if (Objects.isNull(taskGroup)) {
+                    taskGroup = new TaskGroup();
+                    taskGroup.setName(so.getGroupName());
+                }
+                taskGroup.getPointSet().add(point);
+                taskGroupRepo.save(taskGroup);
                 if (!scheduler.contains(point)) {
                     scheduler.registerInvocation(point, new TaskInvocation(point));
                 }

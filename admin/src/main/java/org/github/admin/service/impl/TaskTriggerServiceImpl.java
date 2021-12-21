@@ -22,6 +22,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -141,16 +142,20 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
             for (TaskTrigger trigger : taskTriggerList) {
                 RemoteTask task = new RemoteTask(trigger);
                 taskScheduler.addTask(task);
-                for (Point point : task.getPointSet()) {
-                    if (!taskScheduler.contains(point)) {
-                        taskScheduler.registerInvocation(point, new TaskInvocation(point));
-                    }
-                }
+                preConnect(taskScheduler, task.getPointSet());
             }
             refreshTriggerTime(taskTriggerList);
             checkSuccess = true;
         }
         return checkSuccess;
+    }
+
+    private void preConnect(TaskScheduler scheduler, Set<Point> pointSet) {
+        for (Point point : pointSet) {
+            if (!scheduler.contains(point)) {
+                scheduler.registerInvocation(point, new TaskInvocation(point));
+            }
+        }
     }
 
     private void lock() {

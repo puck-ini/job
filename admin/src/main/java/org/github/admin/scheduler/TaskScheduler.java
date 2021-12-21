@@ -27,17 +27,20 @@ public class TaskScheduler {
 
     public static final long TICK  = 1000L;
 
-    private final AtomicBoolean schedulerState = new AtomicBoolean(STOP);
+    private final AtomicInteger schedulerState = new AtomicInteger(INIT);
 
-    private static final boolean START = true;
+    private static final int INIT = 0;
 
-    private static final boolean STOP = false;
+    private static final int START = 1;
+
+    private static final int STOP = 2;
 
     private final Map<Integer, List<TimerTask>> taskMap = new ConcurrentHashMap<>();
 
     private final Map<Point, Invocation> invocationMap = new ConcurrentHashMap<>();
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
+
     private long cost = 0;
 
     private final ThreadFactory threadFactory = new ThreadFactory() {
@@ -57,8 +60,18 @@ public class TaskScheduler {
     });
 
     public void start() {
-        if (schedulerState.getAndSet(START) == STOP) {
-            triggerThread.start();
+        switch (schedulerState.get()) {
+            case INIT: {
+                if (schedulerState.compareAndSet(INIT, START)) {
+                    triggerThread.start();
+                }
+                break;
+            }
+            case STOP:
+                log.warn("cannot start");
+            case START:
+            default:
+                break;
         }
     }
 
@@ -180,7 +193,7 @@ public class TaskScheduler {
     }
 
     public void stop() {
-        schedulerState.compareAndSet(START, STOP);
+        schedulerState.set(STOP);
         Iterator<Map.Entry<Point, Invocation>> iterator = invocationMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Point, Invocation> entry = iterator.next();

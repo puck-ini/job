@@ -33,8 +33,8 @@ class SchedulerServiceTest {
 //    @RepeatedTest(value = 10)
     void testThread() {
         schedulerService.addCheckThread();
-//        taskTriggerService.startTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
-        taskTriggerService.startTrigger(1L);
+        taskTriggerService.startTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
+//        taskTriggerService.startTrigger(1L);
     }
 
 
@@ -69,7 +69,7 @@ class SchedulerServiceTest {
     @AfterEach
     void sleep() {
         try {
-            TimeUnit.SECONDS.sleep(600);
+            TimeUnit.SECONDS.sleep(60);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
