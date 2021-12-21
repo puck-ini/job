@@ -26,15 +26,15 @@ public class TaskScheduler {
 
     public static final long TICK  = 1000L;
 
-    private volatile AtomicBoolean schedulerState = new AtomicBoolean(STOP);
+    private final AtomicBoolean schedulerState = new AtomicBoolean(STOP);
 
     private static final boolean START = true;
 
     private static final boolean STOP = false;
 
-    private volatile Map<Integer, List<TimerTask>> taskMap = new ConcurrentHashMap<>();
+    private final Map<Integer, List<TimerTask>> taskMap = new ConcurrentHashMap<>();
 
-    private volatile Map<Point, Invocation> invocationMap = new ConcurrentHashMap<>();
+    private final Map<Point, Invocation> invocationMap = new ConcurrentHashMap<>();
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
@@ -94,6 +94,7 @@ public class TaskScheduler {
     }
 
     public void runTask(TimerTask task) {
+        log.info("run task - " + task.getName());
         if (task instanceof RemoteTask) {
             RemoteTask remoteTask = (RemoteTask) task;
             Set<Point> pointSet = remoteTask.getPointSet();
@@ -144,7 +145,7 @@ public class TaskScheduler {
         for (Point point : pointSet) {
             invocation = invocationMap.computeIfAbsent(
                     point,
-                    k -> new InvocationWrapper(new TaskInvocation(k, this))
+                    k -> new InvocationWrapper(new TaskInvocation(k))
             );
             if (invocation.isAvailable()) {
                 return invocation;
@@ -201,7 +202,7 @@ public class TaskScheduler {
             if (count.get() < MAX_COUNT) {
                 invocation.connnect();
                 if (Objects.isNull(reConnectTask)) {
-                    reConnectTask = new LocalTask(() -> {
+                    reConnectTask = new LocalTask("reConnectTask-" + getPoint().getIp(), () -> {
                         if (invocation.isAvailable() || count.getAndIncrement() >= MAX_COUNT) {
                             reConnectTask.cancel();
                         } else {
@@ -223,11 +224,17 @@ public class TaskScheduler {
         @Override
         public void disconnect() {
             invocation.disconnect();
+            remove(getPoint());
         }
 
         @Override
         public boolean isAvailable() {
             return invocation.isAvailable();
+        }
+
+        @Override
+        public Point getPoint() {
+            return invocation.getPoint();
         }
     }
 }

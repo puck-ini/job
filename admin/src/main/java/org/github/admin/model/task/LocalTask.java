@@ -2,6 +2,7 @@ package org.github.admin.model.task;
 
 import org.github.admin.util.CronExpUtil;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author zengchzh
@@ -10,6 +11,7 @@ import java.util.Date;
 
 public class LocalTask implements TimerTask {
 
+    private final String taskName;
 
     private final Runnable r;
 
@@ -22,7 +24,18 @@ public class LocalTask implements TimerTask {
 
     private boolean cancel;
 
+    private static final AtomicInteger COUNT = new AtomicInteger(0);
+
     public LocalTask(Runnable r, String cron) {
+        this.taskName = LocalTask.class.getSimpleName() + "-" + COUNT.getAndIncrement();
+        this.r = r;
+        this.cron = cron;
+        this.cancel = false;
+        refresh(new Date(System.currentTimeMillis() + 3000));
+    }
+
+    public LocalTask(String taskName, Runnable r, String cron) {
+        this.taskName = taskName;
         this.r = r;
         this.cron = cron;
         this.cancel = false;
@@ -36,6 +49,11 @@ public class LocalTask implements TimerTask {
 
     private void refresh(Date date) {
         this.nextTime = CronExpUtil.getNextTime(cron, date);
+    }
+
+    @Override
+    public String getName() {
+        return this.taskName;
     }
 
     @Override

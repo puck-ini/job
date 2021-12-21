@@ -6,6 +6,7 @@ package org.github.admin.model.task;
  */
 public interface TimerTask {
 
+    String getName();
 
     long getNextTime();
 

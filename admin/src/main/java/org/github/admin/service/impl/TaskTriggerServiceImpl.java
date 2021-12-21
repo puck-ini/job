@@ -143,7 +143,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
                 taskScheduler.addTask(task);
                 for (Point point : task.getPointSet()) {
                     if (!taskScheduler.contains(point)) {
-                        taskScheduler.registerInvocation(point, new TaskInvocation(point, taskScheduler));
+                        taskScheduler.registerInvocation(point, new TaskInvocation(point));
                     }
                 }
             }

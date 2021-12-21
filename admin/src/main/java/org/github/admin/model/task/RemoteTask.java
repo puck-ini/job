@@ -74,6 +74,11 @@ public class RemoteTask implements TimerTask{
     }
 
     @Override
+    public String getName() {
+        return this.taskName;
+    }
+
+    @Override
     public long getNextTime() {
         return this.nextTime;
     }

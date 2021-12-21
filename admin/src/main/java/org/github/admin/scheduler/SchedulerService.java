@@ -46,15 +46,15 @@ public class SchedulerService {
     }
 
     private void preGetTaskInfo(TaskScheduler scheduler) {
-        LocalTask task = new LocalTask(() -> {
+        LocalTask task = new LocalTask("GetTaskInfo", () -> {
             List<ServiceObject> soList = zkRegister.getAll();
             soList.forEach(so -> {
                 Point point = new Point(so.getIp(), so.getPort());
-                TaskInvocation invocation
-                        = (TaskInvocation) scheduler.registerInvocation(point, new TaskInvocation(point, scheduler));
-                invocation.preRead();
+                if (!scheduler.contains(point)) {
+                    scheduler.registerInvocation(point, new TaskInvocation(point));
+                }
             });
-        }, "0/30 * * * * ? ");
+        }, "0/3 * * * * ? ");
         scheduler.addTask(task);
     }
 

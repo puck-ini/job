@@ -19,6 +19,7 @@ import org.github.common.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * @author zengchzh
@@ -37,11 +38,22 @@ public class TaskInvocation implements Invocation {
 
     private final Point point;
 
-    private final TaskScheduler taskScheduler;
+    private static final AtomicIntegerFieldUpdater<TaskInvocation> UPDATER
+            = AtomicIntegerFieldUpdater.newUpdater(TaskInvocation.class, "state");
 
-    public TaskInvocation(Point point, TaskScheduler taskScheduler) {
+    private volatile int state;
+
+    private static final int INIT = 0;
+
+    private static final int DO_CONNECT = 1;
+
+    private static final int RUNNING = 2;
+
+    private static final int SHUTDOWN = 3;
+
+    public TaskInvocation(Point point) {
         this.point = point;
-        this.taskScheduler = taskScheduler;
+        this.state = INIT;
         config();
     }
 
@@ -68,27 +80,38 @@ public class TaskInvocation implements Invocation {
     }
 
     @Override
-    public synchronized void connnect() {
-        String threadName = Thread.currentThread().getName();
-        log.info(threadName + " connect " + point + " , available state is " + isAvailable());
+    public void connnect() {
         if (isAvailable()) {
             return;
         }
+        if (UPDATER.compareAndSet(this, INIT, DO_CONNECT)) {
+            log.info(Thread.currentThread().getName() + " connect " + point
+                    + " , available state is " + isAvailable()
+                    + " , state is " + state);
+            doConnect();
+        }
+    }
+
+    private void doConnect() {
         try {
-            bootstrap.connect(point.getIp(), point.getPort()).addListener(new ChannelFutureListener() {
-                @Override
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    if (future.isSuccess()) {
-                        cp.trySuccess(future.channel());
-                    } else {
-                        log.error(threadName + " connect " + point + " fail");
-                        cp.tryFailure(future.cause());
-                    }
+            bootstrap.connect(point.getIp(), point.getPort()).addListener((ChannelFutureListener) future -> {
+                if (future.isSuccess()) {
+                    UPDATER.compareAndSet(TaskInvocation.this, DO_CONNECT, RUNNING);
+                    cp.trySuccess(future.channel());
+                    invokeTaskAppInfo();
+                } else {
+                    UPDATER.compareAndSet(TaskInvocation.this, DO_CONNECT, INIT);
+                    log.error(Thread.currentThread().getName() + " connect " + point + " fail");
+                    cp.tryFailure(future.cause());
                 }
             });
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void invokeTaskAppInfo() {
+        getChannel().writeAndFlush(TaskMsg.builder().msgType(MsgType.PRE_REQ).build());
     }
 
     @Override
@@ -98,10 +121,14 @@ public class TaskInvocation implements Invocation {
 
     private Channel getChannel() {
         if (Objects.isNull(channel)) {
-            try {
-                channel = cp.get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+            if (state != SHUTDOWN) {
+                try {
+                    channel = cp.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                log.error("connection closed");
             }
         }
         return channel;
@@ -109,6 +136,7 @@ public class TaskInvocation implements Invocation {
 
     @Override
     public void disconnect() {
+        UPDATER.set(this, SHUTDOWN);
         if (Objects.nonNull(channel)) {
             channel.close();
         }
@@ -117,11 +145,12 @@ public class TaskInvocation implements Invocation {
 
     @Override
     public boolean isAvailable() {
-        return cp.isSuccess();
+        return cp.isSuccess() && state == RUNNING;
     }
 
-    public void preRead() {
-        getChannel().writeAndFlush(TaskMsg.builder().msgType(MsgType.PRE_REQ).build());
+    @Override
+    public Point getPoint() {
+        return this.point;
     }
 
     class InvocationHandler extends SimpleChannelInboundHandler<TaskMsg> {
@@ -148,8 +177,7 @@ public class TaskInvocation implements Invocation {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             log.error("InvocationHandler exceptionCaught", cause);
-            Invocation invocation = taskScheduler.remove(TaskInvocation.this.point);
-            invocation.disconnect();
+            TaskInvocation.this.disconnect();
             ctx.close();
         }
     }

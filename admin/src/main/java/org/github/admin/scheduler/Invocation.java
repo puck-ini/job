@@ -1,5 +1,6 @@
 package org.github.admin.scheduler;
 
+import org.github.admin.model.entity.Point;
 import org.github.common.TaskReq;
 
 /**
@@ -15,4 +16,6 @@ public interface Invocation {
     void disconnect();
 
     boolean isAvailable();
+
+    Point getPoint();
 }
