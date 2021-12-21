@@ -44,7 +44,7 @@ public class CheckTimeoutThread extends Thread {
                 boolean checkSuccess = taskTriggerService.checkTimeout(taskScheduler);
                 long cost = System.currentTimeMillis() - start;
                 if (cost < TaskScheduler.TICK) {
-                    delayCheck(checkSuccess);
+                    delayCheck(checkSuccess, cost);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -53,9 +53,9 @@ public class CheckTimeoutThread extends Thread {
     }
 
 
-    private void delayCheck(boolean checkSuccess) {
+    private void delayCheck(boolean checkSuccess, long cost) {
         try {
-            TimeUnit.MILLISECONDS.sleep(checkSuccess ? TaskScheduler.TICK : DELAY_TIME);
+            TimeUnit.MILLISECONDS.sleep(checkSuccess ? TaskScheduler.TICK - cost - System.currentTimeMillis() % 1000 : DELAY_TIME);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

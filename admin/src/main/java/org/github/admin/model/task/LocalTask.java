@@ -27,11 +27,7 @@ public class LocalTask implements TimerTask {
     private static final AtomicInteger COUNT = new AtomicInteger(0);
 
     public LocalTask(Runnable r, String cron) {
-        this.taskName = LocalTask.class.getSimpleName() + "-" + COUNT.getAndIncrement();
-        this.r = r;
-        this.cron = cron;
-        this.cancel = false;
-        refresh(new Date(System.currentTimeMillis() + 3000));
+        this(LocalTask.class.getSimpleName() + "-" + COUNT.getAndIncrement(), r, cron);
     }
 
     public LocalTask(String taskName, Runnable r, String cron) {

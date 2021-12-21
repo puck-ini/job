@@ -13,7 +13,7 @@ import java.util.Set;
  */
 
 @Data
-public class RemoteTask implements TimerTask{
+public class RemoteTask implements TimerTask {
 
     private Set<Point> pointSet;
     /**

@@ -9,6 +9,7 @@ import org.github.admin.model.task.TimerTask;
 import org.github.common.TaskReq;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +38,7 @@ public class TaskScheduler {
     private final Map<Point, Invocation> invocationMap = new ConcurrentHashMap<>();
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
+    private long cost = 0;
 
     private final ThreadFactory threadFactory = new ThreadFactory() {
         @Override
@@ -66,29 +68,36 @@ public class TaskScheduler {
             return;
         }
         int index = (int) ((task.getNextTime() / 1000) % 60);
+        log.info("add task " + task.getName() + ", index : " + index+ ", " + LocalDateTime.now());
         List<TimerTask> taskList = taskMap.computeIfAbsent(index, k -> new ArrayList<>());
         taskList.add(task);
     }
 
     private void run() {
         try {
-            int nowSecond = waitForNextTick();
+            int nowSecond = waitForNextTick(cost);
+            log.info("now second : " + nowSecond+ ", " + LocalDateTime.now());
             List<TimerTask> taskList = taskMap.remove(nowSecond);
             if (!CollectionUtils.isEmpty(taskList)) {
                 log.info(Thread.currentThread().getName() + " - invoke task size - " + taskList.size());
+                long start = System.currentTimeMillis();
                 taskList.forEach(this::runTask);
                 taskList.clear();
+                cost = System.currentTimeMillis() - start;
+                log.info("schedule cost : " + cost);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private int waitForNextTick() {
-        try {
-            Thread.sleep(TICK);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    private int waitForNextTick(long cost) {
+        if (cost < TICK) {
+            try {
+                Thread.sleep(TICK - cost);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         return Calendar.getInstance().get(Calendar.SECOND);
     }

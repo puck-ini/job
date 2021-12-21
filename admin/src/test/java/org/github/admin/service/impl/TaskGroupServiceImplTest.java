@@ -32,10 +32,10 @@ class TaskGroupServiceImplTest {
     @Test
     void addTaskAppInfo() {
         TaskAppInfo taskAppInfo = new TaskAppInfo();
-        taskAppInfo.setAppName("test123");
+        taskAppInfo.setAppName("test1");
         taskAppInfo.setIp("127.0.0.1");
-        taskAppInfo.setPort(39900);
-        taskAppInfo.getTaskDescList().add(TaskDesc.builder().className("").methodName("").parameterTypes("").taskName("").build());
+        taskAppInfo.setPort(30003);
+        taskAppInfo.getTaskDescList().add(TaskDesc.builder().className("org.github.tasktest.LogTask").methodName("log").parameterTypes(null).taskName("log").build());
         taskGroupService.addGroup(taskAppInfo);
     }
 
