@@ -28,13 +28,19 @@ class SchedulerServiceTest {
     @Autowired
     private TaskTriggerService taskTriggerService;
 
+    @Test
+    void addThread() {
+        schedulerService.addCheckThread();
+    }
+
     @DisplayName("模拟单机下调度")
     @Test
 //    @RepeatedTest(value = 10)
     void testThread() {
-        schedulerService.addCheckThread();
-        taskTriggerService.startTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
+        addThread();
+        startTrigger();
 //        taskTriggerService.startTrigger(1L);
+        sleep(60);
     }
 
 
@@ -42,9 +48,10 @@ class SchedulerServiceTest {
     @Test
     void test10Thread() {
         for (int i = 0; i < 10; i++) {
-            schedulerService.addCheckThread();
+            addThread();
         }
-        taskTriggerService.startTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
+        startTrigger();
+        sleep(60);
     }
 
     @DisplayName("测试任务关闭")
@@ -61,23 +68,47 @@ class SchedulerServiceTest {
     }
 
     @Test
+    void startTrigger() {
+        taskTriggerService.startTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
+    }
+
+    @Test
     void stopTrigger() {
         taskTriggerService.stopTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
     }
 
 
-    @AfterEach
-    void sleep() {
+    @Test
+    void stopThread() {
+        schedulerService.stop();
+    }
+
+
+    void sleep(int seconds) {
         try {
-            TimeUnit.SECONDS.sleep(60);
+            TimeUnit.SECONDS.sleep(seconds);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        log.info("sleep end - " + LocalDateTime.now());
+    }
+
+    @Test
+    void testThreadRunning() {
+        addThread();
+        startTrigger();
+        sleep(10);
+        log.info("stop thread -------------------------" + LocalDateTime.now());
+        stopThread();
+        sleep(10);
+    }
+
+    @AfterEach
+    void doAfter() {
+        log.info("doAfter - " + LocalDateTime.now());
         log.info("stop trigger - " + LocalDateTime.now());
         stopTrigger();
         log.info("stop scheduler thread - " + LocalDateTime.now());
-        schedulerService.stop();
+        stopThread();
     }
 
 }

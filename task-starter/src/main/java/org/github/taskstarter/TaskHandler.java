@@ -30,26 +30,20 @@ public class TaskHandler extends SimpleChannelInboundHandler<TaskMsg> {
             ctx.channel().writeAndFlush(taskMsg);
             return;
         }
-        CompletableFuture.supplyAsync(new Supplier<TaskRes>() {
-            @Override
-            public TaskRes get() {
-                TaskReq req = (TaskReq) msg.getData();
-                TaskRes res = new TaskRes();
-                res.setRequestId(req.getRequestId());
-                try {
-                    Object o = handler(req);
-                    res.setResult(o);
-                } catch (Throwable t) {
-                    res.setError(t.toString());
-                }
-                return res;
+        CompletableFuture.supplyAsync(() -> {
+            TaskReq req = (TaskReq) msg.getData();
+            TaskRes res = new TaskRes();
+            res.setRequestId(req.getRequestId());
+            try {
+                Object o = handler(req);
+                res.setResult(o);
+            } catch (Throwable t) {
+                res.setError(t.toString());
             }
-        }).thenAccept(new Consumer<TaskRes>() {
-            @Override
-            public void accept(TaskRes res) {
-                TaskMsg taskMsg = TaskMsg.builder().msgType(MsgType.RES).data(res).build();
-                ctx.channel().writeAndFlush(taskMsg);
-            }
+            return res;
+        }).thenAccept(res -> {
+            TaskMsg taskMsg = TaskMsg.builder().msgType(MsgType.RES).data(res).build();
+            ctx.channel().writeAndFlush(taskMsg);
         });
     }
 

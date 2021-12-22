@@ -34,19 +34,16 @@ public class TaskInfoServiceImpl implements TaskInfoService {
 
     @Override
     public void addTask(AddTaskInfoReq req) {
-        taskGroupRepo.findById(req.getTaskGroupId()).ifPresent(new Consumer<TaskGroup>() {
-            @Override
-            public void accept(TaskGroup taskGroup) {
-                TaskInfo taskInfo = new TaskInfo();
-                TaskDesc taskDesc = taskInfo.getTaskDesc();
-                taskDesc.setTaskName(req.getTaskName());
-                taskDesc.setClassName(req.getClassName());
-                taskDesc.setMethodName(req.getMethodName());
-                taskDesc.setParameterTypes(req.getParameterTypes());
-                taskInfo.setTaskGroup(taskGroup);
-                taskGroup.getTaskInfoSet().add(taskInfo);
-                taskGroupRepo.save(taskGroup);
-            }
+        taskGroupRepo.findById(req.getTaskGroupId()).ifPresent(taskGroup -> {
+            TaskInfo taskInfo = new TaskInfo();
+            TaskDesc taskDesc = taskInfo.getTaskDesc();
+            taskDesc.setTaskName(req.getTaskName());
+            taskDesc.setClassName(req.getClassName());
+            taskDesc.setMethodName(req.getMethodName());
+            taskDesc.setParameterTypes(req.getParameterTypes());
+            taskInfo.setTaskGroup(taskGroup);
+            taskGroup.getTaskInfoSet().add(taskInfo);
+            taskGroupRepo.save(taskGroup);
         });
     }
 }

@@ -14,7 +14,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -43,20 +42,19 @@ public class TaskScheduler {
 
     private long cost = 0;
 
-    private final ThreadFactory threadFactory = new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r);
-            thread.setDaemon(true);
-            thread.setName("scheduler-" + COUNTER.getAndIncrement());
-            return thread;
-        }
+    private final ThreadFactory threadFactory = r -> {
+        Thread thread = new Thread(r);
+        thread.setDaemon(true);
+        thread.setName("scheduler-" + COUNTER.getAndIncrement());
+        return thread;
     };
 
     private final Thread triggerThread = threadFactory.newThread(() -> {
         while (schedulerState.get() == START) {
             run();
         }
+        clearPendingTask();
+        clearInvocation();
     });
 
     public void start() {
@@ -77,7 +75,7 @@ public class TaskScheduler {
 
     public void addTask(TimerTask task) {
         start();
-        if (Objects.isNull(task)) {
+        if (Objects.isNull(task) || !isAvailable()) {
             return;
         }
         int index = (int) ((task.getNextTime() / 1000) % 60);
@@ -194,12 +192,25 @@ public class TaskScheduler {
 
     public void stop() {
         schedulerState.set(STOP);
+    }
+
+    private void clearPendingTask() {
+        for (int i = 0; i < 5; i++) {
+            run();
+        }
+    }
+
+    private void clearInvocation() {
         Iterator<Map.Entry<Point, Invocation>> iterator = invocationMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Point, Invocation> entry = iterator.next();
             entry.getValue().disconnect();
             iterator.remove();
         }
+    }
+
+    public boolean isAvailable() {
+        return schedulerState.get() != STOP;
     }
 
     class InvocationWrapper implements Invocation {

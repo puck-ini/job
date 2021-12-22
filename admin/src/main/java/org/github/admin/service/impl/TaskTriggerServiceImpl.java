@@ -57,33 +57,27 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
 
     @Override
     public void create(CreateTriggerReq req) {
-        taskInfoRepo.findById(req.getTaskId()).ifPresent(new Consumer<TaskInfo>() {
-            @Override
-            public void accept(TaskInfo taskInfo) {
-                TaskTrigger taskTrigger = new TaskTrigger();
-                taskTrigger.setParameters(req.getParameters());
-                taskTrigger.setCronExpression(req.getCronExpression());
-                taskTrigger.setTaskInfo(taskInfo);
-                taskInfo.getTriggerSet().add(taskTrigger);
-                taskInfoRepo.save(taskInfo);
-            }
+        taskInfoRepo.findById(req.getTaskId()).ifPresent(taskInfo -> {
+            TaskTrigger taskTrigger = new TaskTrigger();
+            taskTrigger.setParameters(req.getParameters());
+            taskTrigger.setCronExpression(req.getCronExpression());
+            taskTrigger.setTaskInfo(taskInfo);
+            taskInfo.getTriggerSet().add(taskTrigger);
+            taskInfoRepo.save(taskInfo);
         });
     }
 
     @Override
     public void startTrigger(Long triggerId) {
-        taskTriggerRepo.findById(triggerId).ifPresent(new Consumer<TaskTrigger>() {
-            @Override
-            public void accept(TaskTrigger taskTrigger) {
-                taskTrigger.setStatus(TaskTrigger.TriggerStatus.RUNNING);
-                taskTrigger.setStartTime(System.currentTimeMillis());
-                taskTrigger.setLastTime(taskTrigger.getNextTime());
-                taskTrigger.setNextTime(CronExpUtil.getNextTime(
-                        taskTrigger.getCronExpression(),
-                        new Date()) + 5000L
-                );
-                taskTriggerRepo.save(taskTrigger);
-            }
+        taskTriggerRepo.findById(triggerId).ifPresent(taskTrigger -> {
+            taskTrigger.setStatus(TaskTrigger.TriggerStatus.RUNNING);
+            taskTrigger.setStartTime(System.currentTimeMillis());
+            taskTrigger.setLastTime(taskTrigger.getNextTime());
+            taskTrigger.setNextTime(CronExpUtil.getNextTime(
+                    taskTrigger.getCronExpression(),
+                    new Date()) + 5000L
+            );
+            taskTriggerRepo.save(taskTrigger);
         });
     }
 
@@ -95,13 +89,10 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
 
     @Override
     public void stopTrigger(Long triggerId) {
-        taskTriggerRepo.findById(triggerId).ifPresent(new Consumer<TaskTrigger>() {
-            @Override
-            public void accept(TaskTrigger taskTrigger) {
-                taskTrigger.setStatus(TaskTrigger.TriggerStatus.STOP);
-                taskTrigger.setNextTime(0L);
-                taskTriggerRepo.save(taskTrigger);
-            }
+        taskTriggerRepo.findById(triggerId).ifPresent(taskTrigger -> {
+            taskTrigger.setStatus(TaskTrigger.TriggerStatus.STOP);
+            taskTrigger.setNextTime(0L);
+            taskTriggerRepo.save(taskTrigger);
         });
     }
 
@@ -138,7 +129,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         lock();
         boolean checkSuccess = false;
         List<TaskTrigger> taskTriggerList = getDeadlineTrigger(PRE_READ_TIME, PRE_READ_SIZE);
-        if (!CollectionUtils.isEmpty(taskTriggerList)) {
+        if (!CollectionUtils.isEmpty(taskTriggerList) && taskScheduler.isAvailable()) {
             for (TaskTrigger trigger : taskTriggerList) {
                 RemoteTask task = new RemoteTask(trigger);
                 taskScheduler.addTask(task);
