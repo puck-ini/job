@@ -62,9 +62,7 @@ public class SchedulerService {
                 }
                 taskGroup.getPointSet().add(point);
                 taskGroupRepo.save(taskGroup);
-                if (!scheduler.contains(point)) {
-                    scheduler.registerInvocation(point, new TaskInvocation(point));
-                }
+                scheduler.registerInvocation(point, new TaskInvocation(point));
             });
         }, "0/3 * * * * ? ");
         scheduler.addTask(task);

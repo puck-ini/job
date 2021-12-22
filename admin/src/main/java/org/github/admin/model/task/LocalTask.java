@@ -39,7 +39,11 @@ public class LocalTask implements TimerTask {
     }
 
     public void run() {
-        this.r.run();
+        try {
+            this.r.run();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         refresh(new Date(this.nextTime));
     }
 

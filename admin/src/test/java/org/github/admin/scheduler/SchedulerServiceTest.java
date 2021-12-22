@@ -102,6 +102,19 @@ class SchedulerServiceTest {
         sleep(10);
     }
 
+    @Test
+    void testLocalTaskException() {
+        addThread();
+        schedulerService.addTask(new LocalTask(() -> {
+            if (true) {
+                throw new NullPointerException("test exception");
+            }
+        }, "0/1 * * * * ? "));
+        sleep(10);
+        stopThread();
+        sleep(10);
+    }
+
     @AfterEach
     void doAfter() {
         log.info("doAfter - " + LocalDateTime.now());

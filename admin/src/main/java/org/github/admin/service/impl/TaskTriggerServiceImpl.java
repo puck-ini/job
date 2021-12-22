@@ -143,9 +143,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
 
     private void preConnect(TaskScheduler scheduler, Set<Point> pointSet) {
         for (Point point : pointSet) {
-            if (!scheduler.contains(point)) {
-                scheduler.registerInvocation(point, new TaskInvocation(point));
-            }
+            scheduler.registerInvocation(point, new TaskInvocation(point));
         }
     }
 

@@ -53,7 +53,7 @@ public class TaskScheduler {
         while (schedulerState.get() == START) {
             run();
         }
-        clearPendingTask();
+        runPendingTask();
         clearInvocation();
     });
 
@@ -113,7 +113,7 @@ public class TaskScheduler {
         return Calendar.getInstance().get(Calendar.SECOND);
     }
 
-    public void runTask(TimerTask task) {
+    private void runTask(TimerTask task) {
         log.info("run task - " + task.getName());
         if (task instanceof RemoteTask) {
             RemoteTask remoteTask = (RemoteTask) task;
@@ -177,6 +177,9 @@ public class TaskScheduler {
     }
 
     public Invocation registerInvocation(Point point, Invocation invocation) {
+        if (contains(point)) {
+            return invocationMap.get(point);
+        }
         Invocation invocationWrapper = invocationMap.computeIfAbsent(point, k -> new InvocationWrapper(invocation));
         CompletableFuture.runAsync(invocationWrapper::connnect);
         return invocation;
@@ -194,7 +197,7 @@ public class TaskScheduler {
         schedulerState.set(STOP);
     }
 
-    private void clearPendingTask() {
+    private void runPendingTask() {
         for (int i = 0; i < 5; i++) {
             run();
         }
@@ -221,7 +224,7 @@ public class TaskScheduler {
 
         private static final int MAX_COUNT = 5;
 
-        private LocalTask reConnectTask;
+        private LocalTask reconnectTask;
 
         public InvocationWrapper(Invocation invocation) {
             this.invocation = invocation;
@@ -229,21 +232,21 @@ public class TaskScheduler {
 
         @Override
         public synchronized void connnect() {
-            if (Objects.nonNull(reConnectTask)) {
+            if (Objects.nonNull(reconnectTask)) {
                 return;
             }
             if (count.get() < MAX_COUNT) {
                 invocation.connnect();
-                if (Objects.isNull(reConnectTask)) {
-                    reConnectTask = new LocalTask("reConnectTask-" + getPoint().getIp(), () -> {
+                if (Objects.isNull(reconnectTask)) {
+                    reconnectTask = new LocalTask("reconnectTask-" + getPoint().getIp(), () -> {
                         if (invocation.isAvailable() || count.getAndIncrement() >= MAX_COUNT) {
-                            reConnectTask.cancel();
+                            reconnectTask.cancel();
                         } else {
                             CompletableFuture.runAsync(invocation::connnect);
                         }
                     }, "0/6 * * * * ? ");
                     log.info(Thread.currentThread().getName() + " add reconnect task");
-                    addTask(reConnectTask);
+                    addTask(reconnectTask);
                 }
             }
             invocation.connnect();
