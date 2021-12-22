@@ -34,13 +34,16 @@ class SchedulerServiceTest {
     }
 
     @DisplayName("模拟单机下调度")
-    @Test
-//    @RepeatedTest(value = 10)
+//    @Test
+    @RepeatedTest(value = 3)
     void testThread() {
         addThread();
         startTrigger();
 //        taskTriggerService.startTrigger(1L);
-        sleep(60);
+        sleep(20);
+        stopTrigger();
+        stopThread();
+        sleep(6);
     }
 
 

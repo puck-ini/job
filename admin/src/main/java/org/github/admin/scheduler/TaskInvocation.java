@@ -157,13 +157,18 @@ public class TaskInvocation implements Invocation {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, TaskMsg msg) throws Exception {
-            if (MsgType.PRE_RES == msg.getMsgType()) {
-                TaskAppInfo info = (TaskAppInfo) msg.getData();
-                TaskGroupService taskGroupService = SpringApplicationContextUtil.getBean(TaskGroupService.class);
-                taskGroupService.addGroup(info);
-            } else {
+            try {
+                if (MsgType.PRE_RES == msg.getMsgType()) {
+                    TaskAppInfo info = (TaskAppInfo) msg.getData();
+                    TaskGroupService taskGroupService = SpringApplicationContextUtil.getBean(TaskGroupService.class);
+                    taskGroupService.addGroup(info);
+                } else {
 //                log.info(msg.toString());
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
         }
 
         @Override
