@@ -17,4 +17,10 @@ public class TaskLock {
 
     @Id
     private String lockName;
+
+    public TaskLock() {}
+
+    public TaskLock(String lockName) {
+        this.lockName = lockName;
+    }
 }

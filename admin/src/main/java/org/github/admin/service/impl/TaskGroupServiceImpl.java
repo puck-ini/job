@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.Set;
@@ -35,6 +36,7 @@ public class TaskGroupServiceImpl implements TaskGroupService {
         return taskGroupRepo.findAll(PageRequest.of(0, 10));
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void createGroup(CreateGroupReq req) {
         TaskGroup taskGroup = new TaskGroup();
@@ -46,6 +48,7 @@ public class TaskGroupServiceImpl implements TaskGroupService {
         taskGroupRepo.save(taskGroup);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void addGroup(TaskAppInfo info) {
         TaskGroup taskGroup = taskGroupRepo.findByName(info.getAppName());

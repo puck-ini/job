@@ -111,28 +111,32 @@ public class TaskScheduler {
     }
 
     private void runTask(TimerTask task) {
-        if (task instanceof RemoteTask) {
-            RemoteTask remoteTask = (RemoteTask) task;
-            Set<Point> pointSet = remoteTask.getPointSet();
-            Invocation invocation = getInvocation(pointSet);
-            if (Objects.isNull(invocation)) {
-                log.error(pointSet + " unavailable");
-                return;
+        try {
+            if (task instanceof RemoteTask) {
+                RemoteTask remoteTask = (RemoteTask) task;
+                Set<Point> pointSet = remoteTask.getPointSet();
+                Invocation invocation = getInvocation(pointSet);
+                if (Objects.isNull(invocation)) {
+                    log.error(pointSet + " unavailable");
+                    return;
+                }
+                TaskReq req = TaskReq.builder()
+                        .requestId(UUID.randomUUID().toString())
+                        .className(remoteTask.getClassName())
+                        .methodName(remoteTask.getMethodName())
+                        .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
+                        .parameters(parseParaJson(remoteTask.getParameters()))
+                        .build();
+                invocation.invoke(req);
+            } else if (task instanceof LocalTask) {
+                LocalTask localTask = (LocalTask) task;
+                localTask.run();
+                if (!localTask.isCancel()) {
+                    addTask(localTask);
+                }
             }
-            TaskReq req = TaskReq.builder()
-                    .requestId(UUID.randomUUID().toString())
-                    .className(remoteTask.getClassName())
-                    .methodName(remoteTask.getMethodName())
-                    .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
-                    .parameters(parseParaJson(remoteTask.getParameters()))
-                    .build();
-            invocation.invoke(req);
-        } else if (task instanceof LocalTask) {
-            LocalTask localTask = (LocalTask) task;
-            localTask.run();
-            if (!localTask.isCancel()) {
-                addTask(localTask);
-            }
+        } catch (Exception e) {
+            log.error(task.getName() + " run fail ", e);
         }
     }
 

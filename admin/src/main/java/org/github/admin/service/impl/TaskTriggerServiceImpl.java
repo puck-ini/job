@@ -5,7 +5,6 @@ import org.github.admin.model.entity.Point;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.model.task.RemoteTask;
 import org.github.admin.repo.TaskInfoRepo;
-import org.github.admin.repo.TaskLockRepo;
 import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.model.req.CreateTriggerReq;
 import org.github.admin.scheduler.CheckTimeoutThread;
@@ -22,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -40,7 +40,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
     private TaskInfoRepo taskInfoRepo;
 
     @Autowired
-    private TaskLockRepo taskLockRepo;
+    private TaskLockService lockService;
 
     private static final String LOCK_NAME = "task_lock";
 
@@ -51,6 +51,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         return taskTriggerRepo.findAll(PageRequest.of(0, 10));
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void create(CreateTriggerReq req) {
         taskInfoRepo.findById(req.getTaskId()).ifPresent(taskInfo -> {
@@ -122,7 +123,7 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public boolean addTimeoutTask(TaskScheduler taskScheduler, long deadline, int size) {
-        lock();
+        lockService.lock(LOCK_NAME);
         boolean checkSuccess = false;
         List<TaskTrigger> taskTriggerList = getDeadlineTrigger(deadline, size);
         if (!CollectionUtils.isEmpty(taskTriggerList) && taskScheduler.isAvailable()) {
@@ -141,9 +142,5 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         for (Point point : pointSet) {
             scheduler.registerInvocation(point, new TaskInvocation(point));
         }
-    }
-
-    private void lock() {
-        taskLockRepo.findByLockName(LOCK_NAME);
     }
 }

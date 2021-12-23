@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.function.Consumer;
 
@@ -31,6 +32,7 @@ public class TaskInfoServiceImpl implements TaskInfoService {
         return taskInfoRepo.findAll(PageRequest.of(0, 10));
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public void addTask(AddTaskInfoReq req) {
         taskGroupRepo.findById(req.getTaskGroupId()).ifPresent(taskGroup -> {
