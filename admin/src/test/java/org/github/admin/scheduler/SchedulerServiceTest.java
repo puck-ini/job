@@ -38,9 +38,9 @@ class SchedulerServiceTest {
     @RepeatedTest(value = 3)
     void testThread() {
         addThread();
-        startTrigger();
-//        taskTriggerService.startTrigger(1L);
-        sleep(20);
+//        startTrigger();
+        taskTriggerService.startTrigger(1L);
+        sleep(30);
         stopTrigger();
         stopThread();
         sleep(6);
@@ -55,6 +55,9 @@ class SchedulerServiceTest {
         }
         startTrigger();
         sleep(60);
+        stopTrigger();
+        stopThread();
+        sleep(6);
     }
 
     @DisplayName("测试任务关闭")

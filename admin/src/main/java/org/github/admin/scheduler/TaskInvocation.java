@@ -19,6 +19,7 @@ import org.github.common.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
@@ -32,7 +33,7 @@ public class TaskInvocation implements Invocation {
 
     Bootstrap bootstrap = new Bootstrap();
 
-    private final Promise<Channel> cp = ImmediateEventExecutor.INSTANCE.newPromise();;
+    private Promise<Channel> cp;
 
     private Channel channel;
 
@@ -84,6 +85,7 @@ public class TaskInvocation implements Invocation {
         if (isAvailable()) {
             return;
         }
+        cp = ImmediateEventExecutor.INSTANCE.newPromise();
         if (UPDATER.compareAndSet(this, INIT, DO_CONNECT)) {
             log.info(Thread.currentThread().getName() + " connect " + point
                     + " , available state is " + isAvailable()
@@ -123,15 +125,21 @@ public class TaskInvocation implements Invocation {
         if (Objects.isNull(channel)) {
             if (state != SHUTDOWN) {
                 try {
-                    channel = cp.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
+                    channel = cp.get(5, TimeUnit.SECONDS);
+                    return channel;
+                } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                    throw new RuntimeException("get channel fail", e);
                 }
             } else {
-                log.error("connection closed");
+                throw new IllegalStateException("connection closed");
+            }
+        } else {
+            if (state != SHUTDOWN) {
+                return channel;
+            } else {
+                throw new IllegalStateException("connection closed");
             }
         }
-        return channel;
     }
 
     @Override
@@ -145,7 +153,7 @@ public class TaskInvocation implements Invocation {
 
     @Override
     public boolean isAvailable() {
-        return cp.isSuccess() && state == RUNNING;
+        return Objects.nonNull(cp) && cp.isSuccess() && state == RUNNING;
     }
 
     @Override

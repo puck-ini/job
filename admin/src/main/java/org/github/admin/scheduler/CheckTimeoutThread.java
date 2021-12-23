@@ -22,11 +22,15 @@ public class CheckTimeoutThread extends Thread {
 
     private final TaskScheduler taskScheduler;
 
-    private final AtomicBoolean threadState = new AtomicBoolean(START);
-
     private static final boolean START = true;
 
     private static final boolean STOP = false;
+
+    private volatile boolean state = START;
+
+    public static final long PRE_READ_TIME = 5000L;
+
+    private static final int PRE_READ_SIZE = 1000;
 
     private static final AtomicInteger COUNTER = new AtomicInteger(0);
 
@@ -39,14 +43,18 @@ public class CheckTimeoutThread extends Thread {
 
     @Override
     public void run() {
-        while (threadState.get() == START) {
+        while (state == START) {
             try {
                 log.info(CheckTimeoutThread.class.getSimpleName() + " run check " + LocalDateTime.now());
                 long start = System.currentTimeMillis();
-                boolean checkSuccess = taskTriggerService.checkTimeout(taskScheduler);
+                boolean addSuccess = taskTriggerService.addTimeoutTask(
+                        taskScheduler,
+                        System.currentTimeMillis() + PRE_READ_TIME,
+                        PRE_READ_SIZE
+                );
                 long cost = System.currentTimeMillis() - start;
                 if (cost < TaskScheduler.TICK) {
-                    delayCheck(checkSuccess, cost);
+                    delayCheck(addSuccess, cost);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -55,9 +63,9 @@ public class CheckTimeoutThread extends Thread {
     }
 
 
-    private void delayCheck(boolean checkSuccess, long cost) {
+    private void delayCheck(boolean addSuccess, long cost) {
         try {
-            TimeUnit.MILLISECONDS.sleep(checkSuccess ? TaskScheduler.TICK - cost - System.currentTimeMillis() % 1000 : DELAY_TIME);
+            TimeUnit.MILLISECONDS.sleep(addSuccess ? TaskScheduler.TICK - cost - System.currentTimeMillis() % 1000 : DELAY_TIME);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -68,7 +76,7 @@ public class CheckTimeoutThread extends Thread {
     }
 
     public void toStop() {
-        threadState.compareAndSet(START, STOP);
+        state = STOP;
         taskScheduler.stop();
     }
 }

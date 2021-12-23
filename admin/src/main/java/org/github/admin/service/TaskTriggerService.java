@@ -25,9 +25,9 @@ public interface TaskTriggerService {
 
     void stopTrigger(List<Long> triggerIdList);
 
-    List<TaskTrigger> getDeadlineTrigger(Long maxTime, Integer size);
+    List<TaskTrigger> getDeadlineTrigger(long deadline, int size);
 
     void refreshTriggerTime(List<TaskTrigger> triggerList);
 
-    boolean checkTimeout(TaskScheduler taskScheduler);
+    boolean addTimeoutTask(TaskScheduler taskScheduler, long deadline, int size);
 }

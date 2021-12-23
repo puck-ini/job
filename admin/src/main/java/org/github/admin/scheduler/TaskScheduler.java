@@ -162,16 +162,20 @@ public class TaskScheduler {
 
     private Invocation getInvocation(Set<Point> pointSet) {
         Invocation invocation;
+        List<Invocation> invocationList = new ArrayList<>();
         for (Point point : pointSet) {
             invocation = invocationMap.computeIfAbsent(
                     point,
                     k -> new InvocationWrapper(new TaskInvocation(k))
             );
             if (invocation.isAvailable()) {
-                return invocation;
+                invocationList.add(invocation);
             } else {
                 CompletableFuture.runAsync(invocation::connnect);
             }
+        }
+        if (!invocationList.isEmpty()) {
+            return invocationList.get(new Random().nextInt(invocationList.size()));
         }
         return null;
     }
@@ -198,7 +202,8 @@ public class TaskScheduler {
     }
 
     private void runPendingTask() {
-        for (int i = 0; i < 5; i++) {
+        int delayTime = (int) (CheckTimeoutThread.PRE_READ_TIME / 1000);
+        for (int i = 0; i < delayTime; i++) {
             run();
         }
     }
@@ -220,7 +225,9 @@ public class TaskScheduler {
 
         private final Invocation invocation;
 
-        private final AtomicInteger count = new AtomicInteger(0);
+        private final AtomicInteger reconnectCount = new AtomicInteger(0);
+
+        private final AtomicInteger invokeFail = new AtomicInteger(0);
 
         private static final int MAX_COUNT = 5;
 
@@ -235,16 +242,10 @@ public class TaskScheduler {
             if (Objects.nonNull(reconnectTask)) {
                 return;
             }
-            if (count.get() < MAX_COUNT) {
+            if (reconnectCount.get() < MAX_COUNT) {
                 invocation.connnect();
                 if (Objects.isNull(reconnectTask)) {
-                    reconnectTask = new LocalTask("reconnectTask-" + getPoint().getIp(), () -> {
-                        if (invocation.isAvailable() || count.getAndIncrement() >= MAX_COUNT) {
-                            reconnectTask.cancel();
-                        } else {
-                            CompletableFuture.runAsync(invocation::connnect);
-                        }
-                    }, "0/6 * * * * ? ");
+                    initReconnectTask();
                     log.info(Thread.currentThread().getName() + " add reconnect task");
                     addTask(reconnectTask);
                 }
@@ -252,9 +253,29 @@ public class TaskScheduler {
             invocation.connnect();
         }
 
+        private void initReconnectTask() {
+            reconnectTask = new LocalTask("reconnectTask-" + getPoint().getIp(), () -> {
+                if (invocation.isAvailable() || reconnectCount.getAndIncrement() >= MAX_COUNT) {
+                    reconnectTask.cancel();
+                } else {
+                    CompletableFuture.runAsync(invocation::connnect);
+                }
+            }, "0/6 * * * * ? ");
+        }
+
         @Override
         public void invoke(TaskReq req) {
-            invocation.invoke(req);
+            if (invokeFail.get() > MAX_COUNT) {
+                return;
+            }
+            try {
+                invocation.invoke(req);
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (invokeFail.getAndIncrement() == 0) {
+                    addTask(reconnectTask);
+                }
+            }
         }
 
         @Override
@@ -265,7 +286,7 @@ public class TaskScheduler {
 
         @Override
         public boolean isAvailable() {
-            return invocation.isAvailable();
+            return invocation.isAvailable() && invokeFail.get() < MAX_COUNT;
         }
 
         @Override
