@@ -14,3 +14,6 @@ server:
     context-path: /task
 zk:
   address: 127.0.0.1:2181
+scheduler:
+  thread:
+    max-size: 10

@@ -10,6 +10,7 @@ import org.github.admin.service.TaskTriggerService;
 import org.github.common.ServiceObject;
 import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
@@ -34,7 +35,8 @@ public class SchedulerService {
     @Autowired
     private ZkRegister zkRegister;
 
-    private int size = 10;
+    @Value("${scheduler.thread.max-size:1}")
+    private int size;
 
 
     private Map<String, CheckTimeoutThread> threadMap = new HashMap<>();

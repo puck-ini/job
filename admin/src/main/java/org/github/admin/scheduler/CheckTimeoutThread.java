@@ -3,9 +3,7 @@ package org.github.admin.scheduler;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.service.TaskTriggerService;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -45,7 +43,6 @@ public class CheckTimeoutThread extends Thread {
     public void run() {
         while (state == START) {
             try {
-                log.info(CheckTimeoutThread.class.getSimpleName() + " run check " + LocalDateTime.now());
                 long start = System.currentTimeMillis();
                 boolean addSuccess = taskTriggerService.addTimeoutTask(
                         taskScheduler,

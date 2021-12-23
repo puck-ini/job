@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author zengchzh
@@ -51,7 +52,11 @@ public class TaskScheduler {
 
     private final Thread triggerThread = threadFactory.newThread(() -> {
         while (schedulerState.get() == START) {
-            run();
+            try {
+                run();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         runPendingTask();
         clearInvocation();
@@ -79,26 +84,18 @@ public class TaskScheduler {
             return;
         }
         int index = (int) ((task.getNextTime() / 1000) % 60);
-        log.info("add task " + task.getName() + ", index : " + index+ ", " + LocalDateTime.now());
         List<TimerTask> taskList = taskMap.computeIfAbsent(index, k -> new ArrayList<>());
         taskList.add(task);
     }
 
     private void run() {
-        try {
-            int nowSecond = waitForNextTick(cost);
-            log.info("now second : " + nowSecond+ ", " + LocalDateTime.now());
-            List<TimerTask> taskList = taskMap.remove(nowSecond);
-            if (!CollectionUtils.isEmpty(taskList)) {
-                log.info(Thread.currentThread().getName() + " - invoke task size - " + taskList.size());
-                long start = System.currentTimeMillis();
-                taskList.forEach(this::runTask);
-                taskList.clear();
-                cost = System.currentTimeMillis() - start;
-                log.info("schedule cost : " + cost);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        int nowSecond = waitForNextTick(cost);
+        List<TimerTask> taskList = taskMap.remove(nowSecond);
+        if (!CollectionUtils.isEmpty(taskList)) {
+            long start = System.currentTimeMillis();
+            taskList.forEach(this::runTask);
+            taskList.clear();
+            cost = System.currentTimeMillis() - start;
         }
     }
 
@@ -114,7 +111,6 @@ public class TaskScheduler {
     }
 
     private void runTask(TimerTask task) {
-        log.info("run task - " + task.getName());
         if (task instanceof RemoteTask) {
             RemoteTask remoteTask = (RemoteTask) task;
             Set<Point> pointSet = remoteTask.getPointSet();
@@ -246,7 +242,6 @@ public class TaskScheduler {
                 invocation.connnect();
                 if (Objects.isNull(reconnectTask)) {
                     initReconnectTask();
-                    log.info(Thread.currentThread().getName() + " add reconnect task");
                     addTask(reconnectTask);
                 }
             }

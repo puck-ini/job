@@ -10,11 +10,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 
@@ -28,6 +28,9 @@ class SchedulerServiceTest {
     @Autowired
     private TaskTriggerService taskTriggerService;
 
+    @Value("${scheduler.thread.max-size:1}")
+    private int maxSize;
+
     @Test
     void addThread() {
         schedulerService.addCheckThread();
@@ -38,9 +41,9 @@ class SchedulerServiceTest {
     @RepeatedTest(value = 3)
     void testThread() {
         addThread();
-//        startTrigger();
-        taskTriggerService.startTrigger(1L);
-        sleep(30);
+        startTrigger();
+//        taskTriggerService.startTrigger(1L);
+        sleep(20);
         stopTrigger();
         stopThread();
         sleep(6);
@@ -49,8 +52,8 @@ class SchedulerServiceTest {
 
     @DisplayName("模拟集群下调度")
     @Test
-    void test10Thread() {
-        for (int i = 0; i < 10; i++) {
+    void testMaxSizeThread() {
+        for (int i = 0; i < maxSize; i++) {
             addThread();
         }
         startTrigger();

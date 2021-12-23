@@ -1,6 +1,5 @@
 package org.github.admin;
 
-import org.github.admin.scheduler.TaskScheduler;
 import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;

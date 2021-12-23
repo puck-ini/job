@@ -85,17 +85,14 @@ public class TaskInvocation implements Invocation {
         if (isAvailable()) {
             return;
         }
-        cp = ImmediateEventExecutor.INSTANCE.newPromise();
         if (UPDATER.compareAndSet(this, INIT, DO_CONNECT)) {
-            log.info(Thread.currentThread().getName() + " connect " + point
-                    + " , available state is " + isAvailable()
-                    + " , state is " + state);
             doConnect();
         }
     }
 
     private void doConnect() {
         try {
+            cp = ImmediateEventExecutor.INSTANCE.newPromise();
             bootstrap.connect(point.getIp(), point.getPort()).addListener((ChannelFutureListener) future -> {
                 if (future.isSuccess()) {
                     UPDATER.compareAndSet(TaskInvocation.this, DO_CONNECT, RUNNING);
@@ -122,23 +119,18 @@ public class TaskInvocation implements Invocation {
     }
 
     private Channel getChannel() {
-        if (Objects.isNull(channel)) {
-            if (state != SHUTDOWN) {
-                try {
-                    channel = cp.get(5, TimeUnit.SECONDS);
-                    return channel;
-                } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                    throw new RuntimeException("get channel fail", e);
-                }
-            } else {
-                throw new IllegalStateException("connection closed");
+        if (Objects.isNull(channel) && state != SHUTDOWN) {
+            try {
+                channel = cp.get(5, TimeUnit.SECONDS);
+                return channel;
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                throw new RuntimeException("get channel fail", e);
             }
         } else {
-            if (state != SHUTDOWN) {
-                return channel;
-            } else {
+            if (state == SHUTDOWN) {
                 throw new IllegalStateException("connection closed");
             }
+            return channel;
         }
     }
 
@@ -187,6 +179,7 @@ public class TaskInvocation implements Invocation {
                 super.userEventTriggered(ctx, evt);
             }
         }
+
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             log.error("InvocationHandler exceptionCaught", cause);
