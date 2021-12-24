@@ -43,7 +43,7 @@ public class TaskTrigger extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private TriggerStatus status = TriggerStatus.STOP;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TaskInfo taskInfo;
 
@@ -54,26 +54,5 @@ public class TaskTrigger extends BaseEntity {
         STOP
         ;
     }
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) {
-//            return true;
-//        }
-//        if (o == null || getClass() != o.getClass()) {
-//            return false;
-//        }
-//        TaskTrigger that = (TaskTrigger) o;
-//        return Objects.equals(parameters, that.parameters) &&
-//                Objects.equals(cronExpression, that.cronExpression) &&
-//                Objects.equals(startTime, that.startTime) &&
-//                Objects.equals(lastTime, that.lastTime) &&
-//                Objects.equals(nextTime, that.nextTime) &&
-//                status == that.status &&
-//                Objects.equals(taskInfo, that.taskInfo);
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(parameters, cronExpression, startTime, lastTime, nextTime, status, taskInfo);
-//    }
+
 }

@@ -23,13 +23,15 @@ public class TaskGroup extends BaseEntity {
     @JsonIgnore
     @Fetch(FetchMode.SUBSELECT)
     @ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskGroup", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT), name = "task_group_id")
     private Set<Point> pointSet = new HashSet<>();
 
     @JsonIgnore
     @Fetch(FetchMode.SUBSELECT) // 一对多的类中还有一对多关系需要使用该注解
     @ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskGroup", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT), name = "task_group_id")
     private Set<TaskInfo> taskInfoSet = new HashSet<>();
 
     @Override

@@ -18,13 +18,14 @@ public class TaskInfo extends BaseEntity {
 
     private TaskDesc taskDesc = new TaskDesc();
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH})
     @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private TaskGroup taskGroup;
 
     @JsonIgnore
     @ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "taskInfo", fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT), name = "task_info_id")
     private Set<TaskTrigger> triggerSet = new HashSet<>();
 
     @Override

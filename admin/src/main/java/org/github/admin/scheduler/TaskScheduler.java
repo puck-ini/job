@@ -90,12 +90,15 @@ public class TaskScheduler {
 
     private void run() {
         int nowSecond = waitForNextTick(cost);
+        log.info("nowSecond : " + nowSecond);
         List<TimerTask> taskList = taskMap.remove(nowSecond);
         if (!CollectionUtils.isEmpty(taskList)) {
+            log.info("taskList size : " + taskList.size());
             long start = System.currentTimeMillis();
             taskList.forEach(this::runTask);
             taskList.clear();
             cost = System.currentTimeMillis() - start;
+            log.info("scheduler cost : " + cost);
         }
     }
 

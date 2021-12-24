@@ -3,21 +3,32 @@ package org.github.taskstarter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.github.common.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.reflect.FastClass;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.concurrent.*;
 
 /**
  * @author zengchzh
  * @date 2021/12/13
  */
 public class TaskHandler extends SimpleChannelInboundHandler<TaskMsg> {
+
+    private ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
+            12,
+            24,
+            30,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(1000),
+            new ThreadFactory() {
+                @Override
+                public Thread newThread(Runnable r) {
+                    Thread thread = new Thread(r);
+                    thread.setDaemon(true);
+                    return thread;
+                }
+            });
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, TaskMsg msg) throws Exception {

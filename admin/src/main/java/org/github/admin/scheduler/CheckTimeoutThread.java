@@ -50,6 +50,7 @@ public class CheckTimeoutThread extends Thread {
                         PRE_READ_SIZE
                 );
                 long cost = System.currentTimeMillis() - start;
+                log.info("check cost : " + cost);
                 if (cost < TaskScheduler.TICK) {
                     delayCheck(addSuccess, cost);
                 }

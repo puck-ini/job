@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.task.TimerTask;
+import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.service.TaskTriggerService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,8 +38,8 @@ class SchedulerServiceTest {
     }
 
     @DisplayName("模拟单机下调度")
-//    @Test
-    @RepeatedTest(value = 3)
+    @Test
+//    @RepeatedTest(value = 3)
     void testThread() {
         addThread();
         startTrigger();
@@ -78,12 +79,12 @@ class SchedulerServiceTest {
 
     @Test
     void startTrigger() {
-        taskTriggerService.startTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
+        taskTriggerService.startAll();
     }
 
     @Test
     void stopTrigger() {
-        taskTriggerService.stopTrigger(taskTriggerService.list().getContent().stream().map(TaskTrigger::getId).collect(Collectors.toList()));
+        taskTriggerService.stopAll();
     }
 
 

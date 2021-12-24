@@ -21,8 +21,8 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author zengchzh
@@ -78,6 +78,19 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         });
     }
 
+    @Override
+    public void startAll() {
+        taskTriggerRepo.saveAll(taskTriggerRepo.findAllByStatus(TaskTrigger.TriggerStatus.STOP).stream().peek(taskTrigger -> {
+            taskTrigger.setStatus(TaskTrigger.TriggerStatus.RUNNING);
+            taskTrigger.setStartTime(System.currentTimeMillis());
+            taskTrigger.setLastTime(taskTrigger.getNextTime());
+            taskTrigger.setNextTime(CronExpUtil.getNextTime(
+                    taskTrigger.getCronExpression(),
+                    new Date()) + DELAY_START_TIME
+            );
+        }).collect(Collectors.toList()));
+    }
+
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void startTrigger(List<Long> triggerIdList) {
@@ -91,6 +104,14 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
             taskTrigger.setNextTime(0L);
             taskTriggerRepo.save(taskTrigger);
         });
+    }
+
+    @Override
+    public void stopAll() {
+        taskTriggerRepo.saveAll(taskTriggerRepo.findAllByStatus(TaskTrigger.TriggerStatus.RUNNING).stream().peek(taskTrigger -> {
+            taskTrigger.setStatus(TaskTrigger.TriggerStatus.STOP);
+            taskTrigger.setNextTime(0L);
+        }).collect(Collectors.toList()));
     }
 
     @Transactional(rollbackFor = Exception.class)

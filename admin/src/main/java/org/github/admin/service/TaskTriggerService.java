@@ -19,9 +19,13 @@ public interface TaskTriggerService {
 
     void startTrigger(Long triggerId);
 
+    void startAll();
+
     void startTrigger(List<Long> triggerIdList);
 
     void stopTrigger(Long triggerId);
+
+    void stopAll();
 
     void stopTrigger(List<Long> triggerIdList);
 
