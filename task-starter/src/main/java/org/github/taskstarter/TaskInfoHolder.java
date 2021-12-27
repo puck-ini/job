@@ -44,7 +44,6 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
         if (Objects.isNull(event.getApplicationContext().getParent())) {
             context = event.getApplicationContext();
             init();
-            startServer();
             registerGroup();
         }
     }
@@ -71,12 +70,6 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
             }
 
         }
-    }
-
-    private void startServer() {
-        new Thread(() -> {
-            new TaskServer(taskProp.getPort()).start();
-        }).start();
     }
 
     private void registerGroup() {

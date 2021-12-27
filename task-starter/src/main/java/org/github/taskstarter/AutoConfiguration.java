@@ -28,4 +28,9 @@ public class AutoConfiguration {
     public ZkRegister zkRegister(@Autowired TaskProp taskProp) {
         return new ZkRegister(taskProp.getZkAddress());
     }
+
+    @Bean
+    public TaskListener taskListener(@Autowired TaskProp taskProp) {
+        return new TaskListener(taskProp.getPort());
+    }
 }

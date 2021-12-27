@@ -15,7 +15,7 @@ import java.util.concurrent.*;
  */
 public class TaskHandler extends SimpleChannelInboundHandler<TaskMsg> {
 
-    private ThreadPoolExecutor poolExecutor = new ThreadPoolExecutor(
+    private ThreadPoolExecutor pool = new ThreadPoolExecutor(
             12,
             24,
             30,
@@ -52,7 +52,7 @@ public class TaskHandler extends SimpleChannelInboundHandler<TaskMsg> {
                 res.setError(t.toString());
             }
             return res;
-        }).thenAccept(res -> {
+        }, pool).thenAccept(res -> {
             TaskMsg taskMsg = TaskMsg.builder().msgType(MsgType.RES).data(res).build();
             ctx.channel().writeAndFlush(taskMsg);
         });
