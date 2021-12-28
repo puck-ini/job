@@ -27,7 +27,7 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
     @Autowired
     private TaskProp taskProp;
 
-    @Autowired
+    @Autowired(required = false)
     private ZkRegister zkRegister;
 
     @Value("${spring.application.name:null}")
@@ -115,7 +115,7 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
         }
         taskAppInfo.setTaskDescList(taskDescList);
         TaskInfoHolder.taskAppInfo = taskAppInfo;
-        if (taskDescList.size() != 0) {
+        if (taskDescList.size() != 0 && taskProp.isZkEnable()) {
             zkRegister.register(ServiceObject.builder()
                     .groupName(taskAppInfo.getAppName())
                     .ip(taskAppInfo.getIp())

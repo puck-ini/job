@@ -32,11 +32,14 @@ public class SchedulerService {
     @Autowired
     private TaskGroupRepo taskGroupRepo;
 
-    @Autowired
+    @Autowired(required = false)
     private ZkRegister zkRegister;
 
     @Value("${scheduler.thread.max-size:1}")
     private int size;
+
+    @Value("${zk.enable:false}")
+    private boolean zkEnable;
 
 
     private Map<String, CheckTimeoutThread> threadMap = new HashMap<>();
@@ -45,7 +48,9 @@ public class SchedulerService {
     public void addCheckThread() {
         if (threadMap.values().size() < size) {
             TaskScheduler scheduler = new TaskScheduler();
-            preGetTaskInfo(scheduler);
+            if (zkEnable) {
+                preGetTaskInfo(scheduler);
+            }
             CheckTimeoutThread timeoutThread = new CheckTimeoutThread(taskTriggerService, scheduler);
             timeoutThread.start();
             threadMap.put(timeoutThread.getName(), timeoutThread);

@@ -4,6 +4,7 @@ import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
@@ -17,6 +18,7 @@ public class AdminApplication {
     private String zkAddress;
 
     @Bean
+    @ConditionalOnProperty(prefix = "zk", name = "enable", havingValue = "true")
     public ZkRegister zkRegister() {
         return new ZkRegister(zkAddress);
     }

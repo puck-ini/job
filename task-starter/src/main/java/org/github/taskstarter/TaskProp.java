@@ -18,6 +18,8 @@ public class TaskProp {
      */
     private int port = 30003;
 
+    private boolean zkEnable = false;
+
     private String zkAddress = "127.0.0.1:2181";
 
 }

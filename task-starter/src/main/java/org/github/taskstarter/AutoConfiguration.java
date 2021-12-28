@@ -2,6 +2,7 @@ package org.github.taskstarter;
 
 import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,6 +26,7 @@ public class AutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnProperty(prefix = "task", name = "zkEnable", havingValue = "true")
     public ZkRegister zkRegister(@Autowired TaskProp taskProp) {
         return new ZkRegister(taskProp.getZkAddress());
     }
