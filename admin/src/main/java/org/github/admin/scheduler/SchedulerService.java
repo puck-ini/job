@@ -11,10 +11,13 @@ import org.github.common.ServiceObject;
 import org.github.common.ZkRegister;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
 
+import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.stream.IntStream;
 
 
 /**
@@ -24,7 +27,7 @@ import java.util.*;
 
 @Slf4j
 @Component
-public class SchedulerService {
+public class SchedulerService implements SmartLifecycle {
 
     @Autowired
     private TaskTriggerService taskTriggerService;
@@ -38,12 +41,14 @@ public class SchedulerService {
     @Value("${scheduler.thread.max-size:1}")
     private int size;
 
+    @Value("${scheduler.thread.auto-start:true}")
+    private boolean auto;
+
     @Value("${zk.enable:false}")
     private boolean zkEnable;
 
 
     private Map<String, CheckTimeoutThread> threadMap = new HashMap<>();
-
 
     public void addCheckThread() {
         if (threadMap.values().size() < size) {
@@ -62,7 +67,7 @@ public class SchedulerService {
             List<ServiceObject> soList = zkRegister.getAll();
             soList.forEach(so -> {
                 TaskGroup taskGroup = taskGroupRepo.findByName(so.getGroupName());
-                Point point = new Point(so.getIp(), so.getPort(), taskGroup);
+                Point point = new Point(so.getIp(), so.getPort());
                 if (Objects.isNull(taskGroup)) {
                     taskGroup = new TaskGroup();
                     taskGroup.setName(so.getGroupName());
@@ -85,7 +90,20 @@ public class SchedulerService {
         return (CheckTimeoutThread) threadMap.values().toArray()[new Random().nextInt(threadMap.values().size())];
     }
 
+    public void register(Point point, Invocation invocation) {
+        for (CheckTimeoutThread thread : threadMap.values()) {
+            thread.getScheduler().registerInvocation(point, invocation);
+        }
+    }
 
+
+    @Override
+    public void start() {
+        IntStream.range(0, size).forEach(i -> addCheckThread());
+        auto = false;
+    }
+
+    @Override
     public void stop() {
         Iterator<Map.Entry<String, CheckTimeoutThread>> iterator = threadMap.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -94,8 +112,17 @@ public class SchedulerService {
             timeoutThread.toStop();
             iterator.remove();
         }
+        try {
+            Thread.sleep(CheckTimeoutThread.PRE_READ_TIME);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
+    @Override
+    public boolean isRunning() {
+        return !auto;
+    }
 
 
 }

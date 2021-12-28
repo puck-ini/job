@@ -23,7 +23,7 @@ public class TaskTriggerController {
     private TaskTriggerService taskTriggerService;
 
     @PostMapping("/create")
-    public void create(CreateTriggerReq req) {
+    public void create(@RequestBody CreateTriggerReq req) {
         taskTriggerService.create(req);
     }
 
@@ -40,7 +40,7 @@ public class TaskTriggerController {
 
     @GetMapping("/start/all")
     public void startAll() {
-        taskTriggerService.startTrigger(taskTriggerService.list().getContent().stream().map(BaseEntity::getId).collect(Collectors.toList()));
+        taskTriggerService.startAll();
     }
 
     @GetMapping("/stop/{id}")
@@ -50,6 +50,6 @@ public class TaskTriggerController {
 
     @GetMapping("/stop/all")
     public void stopAll() {
-        taskTriggerService.stopTrigger(taskTriggerService.list().getContent().stream().map(BaseEntity::getId).collect(Collectors.toList()));
+        taskTriggerService.stopAll();
     }
 }

@@ -1,11 +1,13 @@
 package org.github.admin.controller;
 
+import org.github.admin.model.entity.Point;
 import org.github.admin.model.entity.TaskGroup;
+import org.github.admin.model.req.CreateGroupReq;
+import org.github.admin.scheduler.SchedulerService;
+import org.github.admin.scheduler.TaskInvocation;
 import org.github.admin.service.TaskGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -17,11 +19,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/group")
 public class TaskGroupController {
+
     @Autowired
     private TaskGroupService taskGroupService;
+
+    @Autowired
+    private SchedulerService schedulerService;
 
     @GetMapping("/list")
     public List<TaskGroup> list() {
         return taskGroupService.list().getContent();
+    }
+
+    @PostMapping
+    public void add(@RequestBody CreateGroupReq req) {
+        taskGroupService.createGroup(req);
+        for (Point point : req.getPointSet()) {
+            schedulerService.register(point, new TaskInvocation(point));
+        }
     }
 }

@@ -20,11 +20,7 @@ public class TaskGroup extends BaseEntity {
     @Column(unique = true)
     private String name;
 
-    @JsonIgnore
-    @Fetch(FetchMode.SUBSELECT)
-    @ToString.Exclude
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT), name = "task_group_id")
+    @ElementCollection(fetch = FetchType.EAGER, targetClass = Point.class)
     private Set<Point> pointSet = new HashSet<>();
 
     @JsonIgnore

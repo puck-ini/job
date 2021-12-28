@@ -42,9 +42,6 @@ public class TaskGroupServiceImpl implements TaskGroupService {
         TaskGroup taskGroup = new TaskGroup();
         taskGroup.setName(req.getName());
         taskGroup.setPointSet(req.getPointSet());
-        for (Point point : req.getPointSet()) {
-            point.setTaskGroup(taskGroup);
-        }
         taskGroupRepo.save(taskGroup);
     }
 
@@ -56,7 +53,7 @@ public class TaskGroupServiceImpl implements TaskGroupService {
             taskGroup = new TaskGroup();
         }
         taskGroup.setName(info.getAppName());
-        Point point = new Point(info.getIp(), info.getPort(), taskGroup);
+        Point point = new Point(info.getIp(), info.getPort());
         taskGroup.getPointSet().add(point);
         Set<TaskInfo> taskInfoList = taskGroup.getTaskInfoSet();
         for (TaskDesc desc : info.getTaskDescList()) {

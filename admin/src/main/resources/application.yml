@@ -7,7 +7,7 @@ spring:
   jpa:
     show-sql: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
 server:
   port: 9003
   servlet:
@@ -17,4 +17,5 @@ zk:
   address: 127.0.0.1:2181
 scheduler:
   thread:
-    max-size: 10
+    max-size: 1
+    auto-start: true

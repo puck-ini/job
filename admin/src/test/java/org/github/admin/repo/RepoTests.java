@@ -53,7 +53,6 @@ public class RepoTests {
             Point point = new Point();
             point.setIp(s);
             point.setPort(i);
-            point.setTaskGroup(taskGroup);
             pointList.add(point);
             Set<TaskTrigger> taskTriggerList = new HashSet<>();
             for (int j = 0; j < 10; j++) {
