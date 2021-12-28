@@ -1,21 +1,17 @@
 package org.github.admin.scheduler;
 
-import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.*;
 import org.github.admin.model.task.LocalTask;
-import org.github.admin.model.task.RemoteTask;
 import org.github.admin.model.task.TimerTask;
 import org.github.common.TaskReq;
 import org.springframework.util.CollectionUtils;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author zengchzh
@@ -90,10 +86,8 @@ public class TaskScheduler {
 
     private void run() {
         int nowSecond = waitForNextTick(cost);
-        log.info("nowSecond : " + nowSecond);
         List<TimerTask> taskList = taskMap.remove(nowSecond);
         if (!CollectionUtils.isEmpty(taskList)) {
-            log.info("taskList size : " + taskList.size());
             long start = System.currentTimeMillis();
             taskList.forEach(this::runTask);
             taskList.clear();
@@ -115,89 +109,54 @@ public class TaskScheduler {
 
     private void runTask(TimerTask task) {
         try {
-            if (task instanceof RemoteTask) {
-                RemoteTask remoteTask = (RemoteTask) task;
-                Set<Point> pointSet = remoteTask.getPointSet();
-                Invocation invocation = getInvocation(pointSet);
-                if (Objects.isNull(invocation)) {
-                    log.error(pointSet + " unavailable");
-                    return;
-                }
-                TaskReq req = TaskReq.builder()
-                        .requestId(UUID.randomUUID().toString())
-                        .className(remoteTask.getClassName())
-                        .methodName(remoteTask.getMethodName())
-                        .parameterTypes(parseTypesJson(remoteTask.getParameterTypes()))
-                        .parameters(parseParaJson(remoteTask.getParameters()))
-                        .build();
-                invocation.invoke(req);
-            } else if (task instanceof LocalTask) {
-                LocalTask localTask = (LocalTask) task;
-                localTask.run();
-                if (!localTask.isCancel()) {
-                    addTask(localTask);
-                }
+            try {
+                task.run();
+            } catch (Exception e) {
+                log.error(task.getName() + " run fail ", e);
+            }
+            if (!task.isCancel()) {
+                task.refresh();
+                addTask(task);
             }
         } catch (Exception e) {
             log.error(task.getName() + " run fail ", e);
         }
     }
 
-    private Class[] parseTypesJson(String json) {
-        if (Objects.isNull(json)) {
-            return new Class[]{};
+    public Invocation registerInvocation(Point point, Invocation invocation) {
+        if (invocationMap.containsKey(point)) {
+            return invocationMap.get(point);
         }
-        List<Class> objects = JSON.parseArray(json, Class.class);
-        Class[] arr = new Class[objects.size()];
-        for (int i = 0; i < objects.size(); i++) {
-            arr[i] = objects.get(i);
-        }
-        return arr;
+        Invocation invocationWrapper = invocationMap.computeIfAbsent(point, k -> new InvocationWrapper(invocation));
+        CompletableFuture.runAsync(invocationWrapper::connnect);
+        return invocationWrapper;
+
     }
 
-    private Object[] parseParaJson(String json) {
-        if (Objects.isNull(json)) {
-            return new Object[]{};
-        }
-        List<Object> objects = JSON.parseArray(json, Object.class);
-        return objects.toArray();
+    public Invocation removeInvocation(Point point) {
+        return invocationMap.remove(point);
     }
 
-    private Invocation getInvocation(Set<Point> pointSet) {
+    public Invocation getInvocation(Set<Point> pointSet) {
         Invocation invocation;
-        List<Invocation> invocationList = new ArrayList<>();
+        List<Invocation> availableList = new ArrayList<>();
+        List<Invocation> unavailableList = new ArrayList<>();
         for (Point point : pointSet) {
             invocation = invocationMap.computeIfAbsent(
                     point,
                     k -> new InvocationWrapper(new TaskInvocation(k))
             );
             if (invocation.isAvailable()) {
-                invocationList.add(invocation);
+                availableList.add(invocation);
             } else {
+                unavailableList.add(invocation);
                 CompletableFuture.runAsync(invocation::connnect);
             }
         }
-        if (!invocationList.isEmpty()) {
-            return invocationList.get(new Random().nextInt(invocationList.size()));
+        if (!availableList.isEmpty()) {
+            return availableList.get(new Random().nextInt(availableList.size()));
         }
-        return null;
-    }
-
-    public Invocation registerInvocation(Point point, Invocation invocation) {
-        if (contains(point)) {
-            return invocationMap.get(point);
-        }
-        Invocation invocationWrapper = invocationMap.computeIfAbsent(point, k -> new InvocationWrapper(invocation));
-        CompletableFuture.runAsync(invocationWrapper::connnect);
-        return invocation;
-    }
-
-    public boolean contains(Point point) {
-        return invocationMap.containsKey(point);
-    }
-
-    public Invocation remove(Point point) {
-        return invocationMap.remove(point);
+        return unavailableList.get(new Random().nextInt(unavailableList.size()));
     }
 
     public void stop() {
@@ -283,7 +242,7 @@ public class TaskScheduler {
         @Override
         public void disconnect() {
             invocation.disconnect();
-            remove(getPoint());
+            removeInvocation(getPoint());
         }
 
         @Override

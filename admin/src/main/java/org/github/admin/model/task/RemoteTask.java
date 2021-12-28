@@ -1,21 +1,21 @@
 package org.github.admin.model.task;
 
 import lombok.Data;
-import org.github.admin.model.entity.Point;
-import org.github.admin.model.entity.TaskTrigger;
-import org.github.common.TaskDesc;
+import lombok.extern.slf4j.Slf4j;
+import org.github.admin.convert.RemoteTaskConvert;
+import org.github.admin.scheduler.Invocation;
+import org.github.common.TaskReq;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author zengchzh
  * @date 2021/12/14
  */
 
+@Slf4j
 @Data
 public class RemoteTask implements TimerTask {
-
-    private Set<Point> pointSet;
     /**
      * 任务名
      */
@@ -59,18 +59,38 @@ public class RemoteTask implements TimerTask {
      */
     private Long nextTime;
 
-    public RemoteTask(TaskTrigger trigger) {
-        this.pointSet = trigger.getTaskInfo().getTaskGroup().getPointSet();
-        TaskDesc desc = trigger.getTaskInfo().getTaskDesc();
-        this.taskName = desc.getTaskName();
-        this.className = desc.getClassName();
-        this.methodName = desc.getMethodName();
-        this.parameterTypes = desc.getParameterTypes();
-        this.parameters = trigger.getParameters();
-        this.cronExpression = trigger.getCronExpression();
-        this.startTime = trigger.getStartTime();
-        this.lastTime = trigger.getLastTime();
-        this.nextTime = trigger.getNextTime();
+    private List<Invocation> invocationList;
+
+    public RemoteTask(List<Invocation> invocationList) {
+        this.invocationList = invocationList;
+    }
+
+    @Override
+    public void run() {
+        if (Objects.isNull(invocationList) || invocationList.isEmpty()) {
+            log.error("invocation list is empty");
+            return;
+        }
+        List<Invocation> availableList = new ArrayList<>();
+        for (Invocation invocation : invocationList) {
+            if (invocation.isAvailable()) {
+                availableList.add(invocation);
+            } else {
+                log.error("task [" + taskName + "] : " + invocation.getPoint() + " unavailable ");
+            }
+        }
+        if (!availableList.isEmpty()) {
+            TaskReq req = RemoteTaskConvert.convertToTaskReq(this);
+            Invocation invocation = availableList.get(new Random().nextInt(availableList.size()));
+            invocation.invoke(req);
+        } else {
+            log.error("task [" + taskName + "] run fail");
+        }
+    }
+
+    @Override
+    public void refresh() {
+
     }
 
     @Override
@@ -90,6 +110,6 @@ public class RemoteTask implements TimerTask {
 
     @Override
     public boolean isCancel() {
-        return false;
+        return true;
     }
 }

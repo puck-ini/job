@@ -38,12 +38,13 @@ public class LocalTask implements TimerTask {
         refresh(new Date(System.currentTimeMillis() + 3000));
     }
 
+    @Override
     public void run() {
-        try {
-            this.r.run();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        this.r.run();
+    }
+
+    @Override
+    public void refresh() {
         refresh(new Date(this.nextTime));
     }
 

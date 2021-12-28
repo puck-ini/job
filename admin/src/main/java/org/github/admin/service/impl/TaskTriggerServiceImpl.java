@@ -1,6 +1,7 @@
 package org.github.admin.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.github.admin.convert.RemoteTaskConvert;
 import org.github.admin.model.entity.Point;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.model.task.RemoteTask;
@@ -8,6 +9,7 @@ import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.model.req.CreateTriggerReq;
 import org.github.admin.scheduler.CheckTimeoutThread;
+import org.github.admin.scheduler.Invocation;
 import org.github.admin.scheduler.TaskInvocation;
 import org.github.admin.scheduler.TaskScheduler;
 import org.github.admin.service.TaskTriggerService;
@@ -19,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -149,9 +149,11 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         List<TaskTrigger> taskTriggerList = getDeadlineTrigger(deadline, size);
         if (!CollectionUtils.isEmpty(taskTriggerList) && taskScheduler.isAvailable()) {
             for (TaskTrigger trigger : taskTriggerList) {
-                RemoteTask task = new RemoteTask(trigger);
+                Set<Point> pointSet = trigger.getTaskInfo().getTaskGroup().getPointSet();
+                List<Invocation> invocationList = preConnect(taskScheduler, pointSet);
+                RemoteTask task = new RemoteTask(invocationList);
+                RemoteTaskConvert.convert(task, trigger);
                 taskScheduler.addTask(task);
-                preConnect(taskScheduler, task.getPointSet());
             }
             refreshTriggerTime(taskTriggerList);
             checkSuccess = true;
@@ -159,9 +161,11 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         return checkSuccess;
     }
 
-    private void preConnect(TaskScheduler scheduler, Set<Point> pointSet) {
+    private List<Invocation> preConnect(TaskScheduler scheduler, Set<Point> pointSet) {
+        List<Invocation> invocationList = new ArrayList<>();
         for (Point point : pointSet) {
-            scheduler.registerInvocation(point, new TaskInvocation(point));
+            invocationList.add(scheduler.registerInvocation(point, new TaskInvocation(point)));
         }
+        return invocationList;
     }
 }
