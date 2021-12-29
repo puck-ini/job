@@ -149,6 +149,9 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         List<TaskTrigger> taskTriggerList = getDeadlineTrigger(deadline, size);
         if (!CollectionUtils.isEmpty(taskTriggerList) && taskScheduler.isAvailable()) {
             for (TaskTrigger trigger : taskTriggerList) {
+                if (trigger.getNextTime() < System.currentTimeMillis()) {
+                    trigger.setNextTime(System.currentTimeMillis() + DELAY_START_TIME);
+                }
                 Set<Point> pointSet = trigger.getTaskInfo().getTaskGroup().getPointSet();
                 List<Invocation> invocationList = preConnect(taskScheduler, pointSet);
                 RemoteTask task = new RemoteTask(invocationList);
