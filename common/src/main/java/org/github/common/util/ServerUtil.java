@@ -1,4 +1,4 @@
-package org.github.common;
+package org.github.common.util;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

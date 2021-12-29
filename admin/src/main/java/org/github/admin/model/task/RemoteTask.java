@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.convert.RemoteTaskConvert;
 import org.github.admin.scheduler.Invocation;
-import org.github.common.TaskReq;
+import org.github.common.protocol.TaskReq;
 
 import java.util.*;
 

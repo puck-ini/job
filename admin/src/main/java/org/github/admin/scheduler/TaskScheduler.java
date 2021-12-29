@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.*;
 import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.task.TimerTask;
-import org.github.common.TaskReq;
+import org.github.common.protocol.TaskReq;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;

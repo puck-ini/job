@@ -1,7 +1,7 @@
 package org.github.admin.scheduler;
 
 import org.github.admin.model.entity.Point;
-import org.github.common.TaskReq;
+import org.github.common.protocol.TaskReq;
 
 /**
  * @author zengchzh

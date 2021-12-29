@@ -1,4 +1,4 @@
-package org.github.common;
+package org.github.common.register;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

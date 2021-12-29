@@ -1,4 +1,4 @@
-package org.github.common;
+package org.github.common.register;
 
 import org.I0Itec.zkclient.IZkChildListener;
 import org.I0Itec.zkclient.ZkClient;

@@ -1,6 +1,6 @@
 package org.github.admin;
 
-import org.github.common.ZkRegister;
+import org.github.common.register.ZkRegister;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

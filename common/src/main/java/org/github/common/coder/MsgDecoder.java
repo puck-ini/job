@@ -1,8 +1,13 @@
-package org.github.common;
+package org.github.common.coder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
+import org.github.common.*;
+import org.github.common.protocol.MsgType;
+import org.github.common.protocol.TaskMsg;
+import org.github.common.protocol.TaskReq;
+import org.github.common.protocol.TaskRes;
 
 import java.util.List;
 

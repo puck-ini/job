@@ -1,6 +1,6 @@
 package org.github.taskstarter;
 
-import org.github.common.ZkRegister;
+import org.github.common.register.ZkRegister;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

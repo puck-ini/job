@@ -7,15 +7,14 @@ import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.task.TimerTask;
 import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.service.TaskTriggerService;
-import org.github.common.ServiceObject;
-import org.github.common.ZkRegister;
+import org.github.common.register.ServiceObject;
+import org.github.common.register.ZkRegister;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
 
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.stream.IntStream;
 

@@ -28,9 +28,4 @@ public class TaskAppInfo implements Serializable {
     private int port;
 
     private List<TaskDesc> taskDescList = new ArrayList<>();
-
-    @Override
-    public TaskAppInfo clone() {
-        return TaskAppInfo.builder().appName(appName).ip(ip).port(port).taskDescList(taskDescList).build();
-    }
 }

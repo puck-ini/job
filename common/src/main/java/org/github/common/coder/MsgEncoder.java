@@ -1,8 +1,9 @@
-package org.github.common;
+package org.github.common.coder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
+import org.github.common.protocol.TaskMsg;
 
 /**
  * @author zengchzh

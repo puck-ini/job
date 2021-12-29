@@ -7,8 +7,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
-import org.github.common.MsgDecoder;
-import org.github.common.MsgEncoder;
+import org.github.common.coder.MsgDecoder;
+import org.github.common.coder.MsgEncoder;
 import org.springframework.context.SmartLifecycle;
 
 import java.util.concurrent.TimeUnit;
