@@ -3,7 +3,7 @@ package org.github.admin.convert;
 import com.alibaba.fastjson.JSON;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.model.task.RemoteTask;
-import org.github.common.TaskDesc;
+import org.github.common.types.TaskDesc;
 import org.github.common.protocol.TaskReq;
 
 import java.util.List;

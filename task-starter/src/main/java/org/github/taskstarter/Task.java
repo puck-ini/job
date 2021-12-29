@@ -13,4 +13,6 @@ import java.lang.annotation.*;
 public @interface Task {
 
     String taskName() default "";
+
+    String cron() default "";
 }

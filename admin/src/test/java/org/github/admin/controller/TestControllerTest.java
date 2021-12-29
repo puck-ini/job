@@ -1,9 +1,9 @@
 package org.github.admin.controller;
 
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 import org.github.admin.model.entity.TaskInfo;
-import org.github.admin.model.req.CreateGroupReq;
-import org.github.admin.model.req.CreateTriggerReq;
+import org.github.common.req.CreateGroupReq;
+import org.github.common.req.CreateTriggerReq;
 import org.github.admin.service.TaskInfoService;
 import org.github.admin.service.TaskTriggerService;
 import org.junit.jupiter.api.Test;
@@ -17,8 +17,6 @@ import org.springframework.http.HttpMethod;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -43,8 +41,8 @@ class TestControllerTest {
     void testRun() {
         addGroup();
         sleep(5);
-        addTrigger();
-        sleep(2);
+//        addTrigger();
+//        sleep(2);
         startTrigger();
         sleep(30);
         stopTrigger();

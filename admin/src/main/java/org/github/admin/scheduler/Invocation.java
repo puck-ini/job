@@ -1,6 +1,6 @@
 package org.github.admin.scheduler;
 
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 import org.github.common.protocol.TaskReq;
 
 /**

@@ -1,4 +1,4 @@
-package org.github.admin.model.req;
+package org.github.common.req;
 
 import lombok.Data;
 

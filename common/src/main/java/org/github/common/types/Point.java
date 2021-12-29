@@ -1,11 +1,11 @@
-package org.github.admin.model.entity;
+package org.github.common.types;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
 
 import javax.persistence.*;
-import java.util.Objects;
+
 
 /**
  * @author zengchzh

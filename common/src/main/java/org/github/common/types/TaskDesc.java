@@ -1,14 +1,24 @@
-package org.github.admin.model.req;
+package org.github.common.types;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.Embeddable;
+import java.io.Serializable;
 
 /**
  * @author zengchzh
- * @date 2021/12/10
+ * @date 2021/12/11
  */
 
+@Embeddable
 @Data
-public class AddTaskInfoReq {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class TaskDesc implements Serializable {
 
     /**
      * 任务名
@@ -29,6 +39,4 @@ public class AddTaskInfoReq {
      * 任务参数类型，Class<?>[] json
      */
     private String parameterTypes;
-
-    private Long taskGroupId;
 }

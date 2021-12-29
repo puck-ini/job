@@ -1,7 +1,7 @@
-package org.github.admin.model.req;
+package org.github.common.req;
 
 import lombok.Data;
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 
 import java.util.HashSet;
 import java.util.Set;

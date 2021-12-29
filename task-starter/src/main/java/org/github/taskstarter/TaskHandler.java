@@ -2,11 +2,11 @@ package org.github.taskstarter;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import org.github.common.*;
 import org.github.common.protocol.MsgType;
 import org.github.common.protocol.TaskMsg;
 import org.github.common.protocol.TaskReq;
 import org.github.common.protocol.TaskRes;
+import org.github.common.req.TaskAppInfo;
 import org.springframework.cglib.reflect.FastClass;
 
 import java.lang.reflect.InvocationTargetException;

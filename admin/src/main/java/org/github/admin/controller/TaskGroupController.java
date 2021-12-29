@@ -1,8 +1,8 @@
 package org.github.admin.controller;
 
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 import org.github.admin.model.entity.TaskGroup;
-import org.github.admin.model.req.CreateGroupReq;
+import org.github.common.req.CreateGroupReq;
 import org.github.admin.scheduler.SchedulerService;
 import org.github.admin.scheduler.TaskInvocation;
 import org.github.admin.service.TaskGroupService;

@@ -1,26 +1,24 @@
 package org.github.admin.service.impl;
 
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.model.entity.TaskGroup;
-import org.github.admin.model.entity.TaskTrigger;
-import org.github.admin.model.req.AddTaskInfoReq;
-import org.github.admin.model.req.CreateGroupReq;
-import org.github.admin.model.req.CreateTriggerReq;
+import org.github.common.req.AddTaskInfoReq;
+import org.github.common.req.CreateGroupReq;
+import org.github.common.req.CreateTriggerReq;
 import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.repo.TaskTriggerRepo;
 import org.github.admin.service.TaskGroupService;
 import org.github.admin.service.TaskInfoService;
 import org.github.admin.service.TaskTriggerService;
-import org.github.common.TaskAppInfo;
-import org.github.common.TaskDesc;
+import org.github.common.req.TaskAppInfo;
+import org.github.common.types.TaskDesc;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.List;
 import java.util.stream.IntStream;
 
 
@@ -73,10 +71,10 @@ class TaskGroupServiceImplTest {
     void addTask() {
         for (TaskGroup group : taskGroupService.list().getContent()) {
             AddTaskInfoReq req = new AddTaskInfoReq();
-            req.setClassName("org.github.tasktest.LogTask");
-            req.setMethodName("log");
-            req.setParameterTypes("[]");
-            req.setTaskName("log");
+            req.getTaskDesc().setClassName("org.github.tasktest.LogTask");
+            req.getTaskDesc().setMethodName("log");
+            req.getTaskDesc().setParameterTypes("[]");
+            req.getTaskDesc().setTaskName("log");
             req.setTaskGroupId(group.getId());
             taskInfoService.addTask(req);
         }

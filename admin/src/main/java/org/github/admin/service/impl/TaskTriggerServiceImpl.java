@@ -2,12 +2,12 @@ package org.github.admin.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.convert.RemoteTaskConvert;
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.admin.model.task.RemoteTask;
 import org.github.admin.repo.TaskInfoRepo;
 import org.github.admin.repo.TaskTriggerRepo;
-import org.github.admin.model.req.CreateTriggerReq;
+import org.github.common.req.CreateTriggerReq;
 import org.github.admin.scheduler.CheckTimeoutThread;
 import org.github.admin.scheduler.Invocation;
 import org.github.admin.scheduler.TaskInvocation;

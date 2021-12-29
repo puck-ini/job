@@ -3,16 +3,14 @@ package org.github.admin.service.impl;
 import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.repo.TaskGroupRepo;
 import org.github.admin.repo.TaskInfoRepo;
-import org.github.admin.model.req.AddTaskInfoReq;
+import org.github.common.req.AddTaskInfoReq;
 import org.github.admin.service.TaskInfoService;
-import org.github.common.TaskDesc;
+import org.github.common.types.TaskDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.function.Consumer;
 
 /**
  * @author zengchzh
@@ -37,11 +35,7 @@ public class TaskInfoServiceImpl implements TaskInfoService {
     public void addTask(AddTaskInfoReq req) {
         taskGroupRepo.findById(req.getTaskGroupId()).ifPresent(taskGroup -> {
             TaskInfo taskInfo = new TaskInfo();
-            TaskDesc taskDesc = taskInfo.getTaskDesc();
-            taskDesc.setTaskName(req.getTaskName());
-            taskDesc.setClassName(req.getClassName());
-            taskDesc.setMethodName(req.getMethodName());
-            taskDesc.setParameterTypes(req.getParameterTypes());
+            taskInfo.setTaskDesc(req.getTaskDesc());
             taskInfo.setTaskGroup(taskGroup);
             taskGroup.getTaskInfoSet().add(taskInfo);
             taskGroupRepo.save(taskGroup);

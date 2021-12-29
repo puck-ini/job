@@ -1,7 +1,7 @@
 package org.github.admin.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.model.entity.*;
+import org.github.common.types.Point;
 import org.github.admin.model.task.LocalTask;
 import org.github.admin.model.task.TimerTask;
 import org.github.common.protocol.TaskReq;

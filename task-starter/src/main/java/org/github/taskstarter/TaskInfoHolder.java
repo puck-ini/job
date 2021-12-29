@@ -1,9 +1,11 @@
 package org.github.taskstarter;
 
 import com.alibaba.fastjson.JSON;
-import org.github.common.*;
 import org.github.common.register.ServiceObject;
 import org.github.common.register.ZkRegister;
+import org.github.common.req.TaskAppInfo;
+import org.github.common.req.TaskMethod;
+import org.github.common.types.TaskDesc;
 import org.github.common.util.ServerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -82,7 +84,7 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
                 .ip(ServerUtil.getHost())
                 .port(taskProp.getPort())
                 .build();
-        List<TaskDesc> taskDescList = new ArrayList<>();
+        List<TaskMethod> taskMethodList = new ArrayList<>();
         for (String name : names) {
             Class<?> clazz = context.getType(name);
             if (Objects.isNull(clazz)) {
@@ -94,31 +96,41 @@ public class TaskInfoHolder implements ApplicationListener<ContextRefreshedEvent
             if (Objects.nonNull(task)) {
                 for (Method method : methods) {
                     if (!method.isBridge()) {
-                        taskDescList.add(TaskDesc.builder()
+                        TaskMethod taskMethod = new TaskMethod();
+                        taskMethodList.add(taskMethod);
+                        taskMethod.setTaskDesc(TaskDesc.builder()
                                 .taskName(method.getName())
                                 .className(className)
                                 .methodName(method.getName())
                                 .parameterTypes(JSON.toJSONString(method.getParameterTypes()))
                                 .build());
+                        if (!StringUtils.isEmpty(task.cron())) {
+                            taskMethod.setCron(task.cron());
+                        }
                     }
                 }
             } else {
                 for (Method method : methods) {
                     Task task1 = method.getAnnotation(Task.class);
                     if (Objects.nonNull(task1)) {
-                        taskDescList.add(TaskDesc.builder()
+                        TaskMethod taskMethod = new TaskMethod();
+                        taskMethodList.add(taskMethod);
+                        taskMethod.setTaskDesc(TaskDesc.builder()
                                 .taskName(StringUtils.isEmpty(task1.taskName()) ? method.getName() : task1.taskName())
                                 .className(className)
                                 .methodName(method.getName())
                                 .parameterTypes(JSON.toJSONString(method.getParameterTypes()))
                                 .build());
+                        if (!StringUtils.isEmpty(task1.cron())) {
+                            taskMethod.setCron(task1.cron());
+                        }
                     }
                 }
             }
         }
-        taskAppInfo.setTaskDescList(taskDescList);
+        taskAppInfo.setTaskMethodList(taskMethodList);
         TaskInfoHolder.taskAppInfo = taskAppInfo;
-        if (taskDescList.size() != 0 && taskProp.isZkEnable()) {
+        if (taskMethodList.size() != 0 && taskProp.isZkEnable()) {
             zkRegister.register(ServiceObject.builder()
                     .groupName(taskAppInfo.getAppName())
                     .ip(taskAppInfo.getIp())

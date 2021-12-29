@@ -3,6 +3,7 @@ package org.github.admin.model.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.ToString;
+import org.github.common.types.Point;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 

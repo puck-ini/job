@@ -1,14 +1,16 @@
 package org.github.admin.service.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.model.entity.Point;
+import org.github.admin.model.entity.TaskTrigger;
+import org.github.common.req.TaskMethod;
+import org.github.common.types.Point;
 import org.github.admin.model.entity.TaskGroup;
 import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.repo.TaskGroupRepo;
-import org.github.admin.model.req.CreateGroupReq;
+import org.github.common.req.CreateGroupReq;
 import org.github.admin.service.TaskGroupService;
-import org.github.common.TaskAppInfo;
-import org.github.common.TaskDesc;
+import org.github.common.req.TaskAppInfo;
+import org.github.common.types.TaskDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -56,11 +58,18 @@ public class TaskGroupServiceImpl implements TaskGroupService {
         Point point = new Point(info.getIp(), info.getPort());
         taskGroup.getPointSet().add(point);
         Set<TaskInfo> taskInfoList = taskGroup.getTaskInfoSet();
-        for (TaskDesc desc : info.getTaskDescList()) {
+        for (TaskMethod taskMethod : info.getTaskMethodList()) {
             TaskInfo taskInfo = new TaskInfo();
+            TaskDesc desc = taskMethod.getTaskDesc();
             taskInfo.setTaskDesc(desc);
             taskInfo.setTaskGroup(taskGroup);
             taskInfoList.add(taskInfo);
+            if (Objects.equals(desc.getParameterTypes(), "[]") && Objects.nonNull(taskMethod.getCron())) {
+                TaskTrigger trigger = new TaskTrigger();
+                trigger.setCronExpression(taskMethod.getCron());
+                trigger.setTaskInfo(taskInfo);
+                taskInfo.getTriggerSet().add(trigger);
+            }
         }
         taskGroupRepo.save(taskGroup);
     }

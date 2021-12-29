@@ -1,11 +1,11 @@
 package org.github.admin.repo;
 
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 import org.github.admin.model.entity.TaskInfo;
 import org.github.admin.model.entity.TaskGroup;
 import org.github.admin.model.entity.TaskTrigger;
-import org.github.common.TaskDesc;
+import org.github.common.types.TaskDesc;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,8 +1,8 @@
 package org.github.admin.service;
 
 import org.github.admin.model.entity.TaskGroup;
-import org.github.admin.model.req.CreateGroupReq;
-import org.github.common.TaskAppInfo;
+import org.github.common.req.CreateGroupReq;
+import org.github.common.req.TaskAppInfo;
 import org.springframework.data.domain.Page;
 
 /**

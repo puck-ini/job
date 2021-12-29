@@ -11,15 +11,15 @@ import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.ImmediateEventExecutor;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
-import org.github.admin.model.entity.Point;
+import org.github.common.types.Point;
 import org.github.admin.service.TaskGroupService;
 import org.github.admin.util.SpringApplicationContextUtil;
-import org.github.common.*;
 import org.github.common.coder.MsgDecoder;
 import org.github.common.coder.MsgEncoder;
 import org.github.common.protocol.MsgType;
 import org.github.common.protocol.TaskMsg;
 import org.github.common.protocol.TaskReq;
+import org.github.common.req.TaskAppInfo;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
