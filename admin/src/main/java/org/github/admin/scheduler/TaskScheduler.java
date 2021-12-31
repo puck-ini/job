@@ -92,14 +92,13 @@ public class TaskScheduler {
             taskList.forEach(this::runTask);
             taskList.clear();
             cost = System.currentTimeMillis() - start;
-            log.info("scheduler cost : " + cost);
         }
     }
 
     private int waitForNextTick(long cost) {
         if (cost < TICK) {
             try {
-                Thread.sleep(TICK - cost);
+                Thread.sleep(TICK - System.currentTimeMillis() % 1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -242,7 +241,6 @@ public class TaskScheduler {
         @Override
         public void disconnect() {
             invocation.disconnect();
-            removeInvocation(getPoint());
         }
 
         @Override

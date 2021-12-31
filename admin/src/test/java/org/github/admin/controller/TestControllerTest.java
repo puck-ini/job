@@ -1,5 +1,6 @@
 package org.github.admin.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.github.common.types.Point;
 import org.github.admin.model.entity.TaskInfo;
 import org.github.common.req.CreateGroupReq;
@@ -19,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 
+@Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TestControllerTest {
 
@@ -46,6 +48,7 @@ class TestControllerTest {
         startTrigger();
         sleep(30);
         stopTrigger();
+        log.info("end");
     }
 
     @Test

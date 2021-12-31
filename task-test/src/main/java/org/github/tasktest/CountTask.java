@@ -12,21 +12,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 
 @Slf4j
+//@Task(cron = "0/1 * * * * ? ")
 @Component
 public class CountTask {
 
     private static final AtomicInteger COUNT = new AtomicInteger(0);
 
-    private static int i = 0;
-
-    @Task(cron = "0/1 * * * * ? ")
     public void count() {
         log.info("" + COUNT.getAndIncrement());
     }
 
-
-    @Task
-    public void count1() {
-        log.info("" + i++);
-    }
 }

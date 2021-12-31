@@ -1,5 +1,6 @@
 package org.github.admin.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.github.admin.model.entity.TaskTrigger;
 import org.github.common.req.TaskMethod;
@@ -32,6 +33,7 @@ public class TaskGroupServiceImpl implements TaskGroupService {
     @Autowired
     private TaskGroupRepo taskGroupRepo;
 
+    private static final String NULL_PARAMETER_TYPES = JSON.toJSONString(new Object[]{});
 
     @Override
     public Page<TaskGroup> list() {
@@ -50,10 +52,7 @@ public class TaskGroupServiceImpl implements TaskGroupService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public void addGroup(TaskAppInfo info) {
-        TaskGroup taskGroup = taskGroupRepo.findByName(info.getAppName());
-        if (Objects.isNull(taskGroup)) {
-            taskGroup = new TaskGroup();
-        }
+        TaskGroup taskGroup = taskGroupRepo.findByName(info.getAppName()).orElse(new TaskGroup());
         taskGroup.setName(info.getAppName());
         Point point = new Point(info.getIp(), info.getPort());
         taskGroup.getPointSet().add(point);
@@ -64,7 +63,7 @@ public class TaskGroupServiceImpl implements TaskGroupService {
             taskInfo.setTaskDesc(desc);
             taskInfo.setTaskGroup(taskGroup);
             taskInfoList.add(taskInfo);
-            if (Objects.equals(desc.getParameterTypes(), "[]") && Objects.nonNull(taskMethod.getCron())) {
+            if (Objects.equals(desc.getParameterTypes(), NULL_PARAMETER_TYPES) && Objects.nonNull(taskMethod.getCron())) {
                 TaskTrigger trigger = new TaskTrigger();
                 trigger.setCronExpression(taskMethod.getCron());
                 trigger.setTaskInfo(taskInfo);

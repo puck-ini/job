@@ -16,20 +16,6 @@ import java.util.UUID;
  */
 public class RemoteTaskConvert {
 
-
-    public static void convert(RemoteTask task, TaskTrigger trigger) {
-        TaskDesc desc = trigger.getTaskInfo().getTaskDesc();
-        task.setTaskName(desc.getTaskName());
-        task.setClassName(desc.getClassName());
-        task.setMethodName(desc.getMethodName());
-        task.setParameterTypes(desc.getParameterTypes());
-        task.setParameters(trigger.getParameters());
-        task.setCronExpression(trigger.getCronExpression());
-        task.setStartTime(trigger.getStartTime());
-        task.setLastTime(trigger.getLastTime());
-        task.setNextTime(trigger.getNextTime());
-    }
-
     public static TaskReq convertToTaskReq(RemoteTask task) {
         return TaskReq.builder()
                 .requestId(UUID.randomUUID().toString())

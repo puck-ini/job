@@ -14,6 +14,7 @@ import org.github.admin.scheduler.TaskInvocation;
 import org.github.admin.scheduler.TaskScheduler;
 import org.github.admin.service.TaskTriggerService;
 import org.github.admin.util.CronExpUtil;
+import org.github.common.types.TaskDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -150,12 +151,15 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
         if (!CollectionUtils.isEmpty(taskTriggerList) && taskScheduler.isAvailable()) {
             for (TaskTrigger trigger : taskTriggerList) {
                 if (trigger.getNextTime() < System.currentTimeMillis()) {
-                    trigger.setNextTime(System.currentTimeMillis() + DELAY_START_TIME);
+                    String taskName = trigger.getTaskInfo().getTaskDesc().getTaskName();
+                    int index = (int) ((trigger.getNextTime() / 1000) % 60);
+                    log.info(taskName + " misfire, task index : " + index);
+//                    trigger.setNextTime(System.currentTimeMillis() + DELAY_START_TIME);
                 }
                 Set<Point> pointSet = trigger.getTaskInfo().getTaskGroup().getPointSet();
                 List<Invocation> invocationList = preConnect(taskScheduler, pointSet);
                 RemoteTask task = new RemoteTask(invocationList);
-                RemoteTaskConvert.convert(task, trigger);
+                convert(trigger, task);
                 taskScheduler.addTask(task);
             }
             refreshTriggerTime(taskTriggerList);
@@ -170,5 +174,19 @@ public class TaskTriggerServiceImpl implements TaskTriggerService {
             invocationList.add(scheduler.registerInvocation(point, new TaskInvocation(point)));
         }
         return invocationList;
+    }
+
+
+    private void convert(TaskTrigger trigger, RemoteTask task) {
+        TaskDesc desc = trigger.getTaskInfo().getTaskDesc();
+        task.setTaskName(desc.getTaskName());
+        task.setClassName(desc.getClassName());
+        task.setMethodName(desc.getMethodName());
+        task.setParameterTypes(desc.getParameterTypes());
+        task.setParameters(trigger.getParameters());
+        task.setCronExpression(trigger.getCronExpression());
+        task.setStartTime(trigger.getStartTime());
+        task.setLastTime(trigger.getLastTime());
+        task.setNextTime(trigger.getNextTime());
     }
 }

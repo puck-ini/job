@@ -65,12 +65,12 @@ public class SchedulerService implements SmartLifecycle {
         LocalTask task = new LocalTask("GetTaskInfo", () -> {
             List<ServiceObject> soList = zkRegister.getAll();
             soList.forEach(so -> {
-                TaskGroup taskGroup = taskGroupRepo.findByName(so.getGroupName());
+                TaskGroup taskGroup = taskGroupRepo.findByName(so.getGroupName()).orElseGet(() -> {
+                    TaskGroup taskGroup1 = new TaskGroup();
+                    taskGroup1.setName(so.getGroupName());
+                    return taskGroup1;
+                });
                 Point point = new Point(so.getIp(), so.getPort());
-                if (Objects.isNull(taskGroup)) {
-                    taskGroup = new TaskGroup();
-                    taskGroup.setName(so.getGroupName());
-                }
                 taskGroup.getPointSet().add(point);
                 taskGroupRepo.save(taskGroup);
                 scheduler.registerInvocation(point, new TaskInvocation(point));

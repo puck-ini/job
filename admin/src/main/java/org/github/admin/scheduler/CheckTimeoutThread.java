@@ -50,9 +50,9 @@ public class CheckTimeoutThread extends Thread {
                         PRE_READ_SIZE
                 );
                 long cost = System.currentTimeMillis() - start;
-                log.info("check cost : " + cost + ", addSuccess " + addSuccess);
+//                log.info("check cost : " + cost + ", addSuccess " + addSuccess);
                 if (cost < TaskScheduler.TICK) {
-                    delayCheck(addSuccess, cost);
+                    delayCheck(addSuccess);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -61,13 +61,9 @@ public class CheckTimeoutThread extends Thread {
     }
 
 
-    private void delayCheck(boolean addSuccess, long cost) {
+    private void delayCheck(boolean addSuccess) {
         try {
-            TimeUnit.MILLISECONDS.sleep(
-                    addSuccess
-                    ? TaskScheduler.TICK - cost - System.currentTimeMillis() % TaskScheduler.TICK
-                    : DELAY_TIME - System.currentTimeMillis() % DELAY_TIME
-            );
+            TimeUnit.MILLISECONDS.sleep((addSuccess ? TaskScheduler.TICK : DELAY_TIME) - System.currentTimeMillis() % TaskScheduler.TICK);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
