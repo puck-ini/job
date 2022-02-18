@@ -14,7 +14,7 @@ public interface TimerTask {
 
     long getNextTime();
 
-    void cancel();
+    default void cancel() {};
 
-    boolean isCancel();
+    default boolean isCancel() { return true; };
 }

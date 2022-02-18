@@ -102,14 +102,4 @@ public class RemoteTask implements TimerTask {
     public long getNextTime() {
         return this.nextTime;
     }
-
-    @Override
-    public void cancel() {
-
-    }
-
-    @Override
-    public boolean isCancel() {
-        return true;
-    }
 }
